@@ -1,10 +1,14 @@
 /* ===========================================================
    games/stop.js — STOP VELOZ EN LA SALA
-   Letra + categoría aleatoria. Turnos con barra espaciadora.
-   El que llegue a 0 pierde una vida. Eliminatorio hasta 1 ganador.
+   Cada turno: letra aleatoria + categoría SEGÚN LA EDAD del jugador.
+   Barra espaciadora para pasar. Quien llegue a 0 pierde una vida.
+   Eliminatorio hasta que quede un solo ganador.
    =========================================================== */
 import { LETTERS, CATEGORIES, STOP_CONFIG } from '../data/stop.js';
-import { $, esc, pick, makeTimer, paintTimer, confettiBig, confettiBurst, sfx, toast, backBtn } from '../ui.js';
+import {
+  $, esc, pick, makeTimer, paintTimer, confettiBig, sfx, toast,
+  backBtn, ageAssignScreen, AGE_LABELS,
+} from '../ui.js';
 
 export const stopGame = {
   ...STOP_CONFIG,
@@ -15,43 +19,71 @@ export const stopGame = {
 
   start(root, players, cfg, api) {
     const time = cfg.time, startLives = cfg.lives;
+    const ageOf = {};
 
-    // Estado
-    let alive = players.map(p => ({ ...p, lives: startLives }));
+    let alive = [];
     let turnPos = 0;
-    let letter = '', category = '';
     let timer = null;
     let finished = false;
-    let placement = alive.length; // se asignan lugares de mayor a menor al eliminar
-
+    let placement = 0;
     const PLACEMENT_POINTS = { 1: 300, 2: 200, 3: 150, 4: 100, 5: 50 };
 
-    root.innerHTML = shell();
-    const els = {
-      letter: $('#st-letter'), cat: $('#st-cat'), timer: $('#st-timer'),
-      who: $('#st-who'), lives: $('#st-lives'), msg: $('#st-msg'),
-    };
+    let els = {};
 
-    newRound(true);
+    // 1) Asignar edades
+    ageAssignScreen(root, players, ageOf, {
+      title: 'Stop: nivel de cada jugador', color: 'amber', emoji: '⚡',
+      intro: 'A cada quien le tocan categorías según su edad.',
+      onStart: beginGame,
+    });
 
-    // ---- Lógica ----
+    function beginGame() {
+      alive = players.map(p => ({ ...p, lives: startLives }));
+      placement = alive.length;
+      turnPos = 0;
+      finished = false;
+      root.innerHTML = shell();
+      els = {
+        letter: $('#st-letter'), cat: $('#st-cat'), timer: $('#st-timer'),
+        who: $('#st-who'), lives: $('#st-lives'), msg: $('#st-msg'),
+      };
+      document.addEventListener('keydown', onKey);
+      root.addEventListener('click', onClick);
+      startTurn();
+    }
+
     function currentPlayer() { return alive[turnPos]; }
 
-    function newRound(firstTime) {
-      if (finished) return;
-      letter = pick(LETTERS);
-      category = pick(CATEGORIES);
-      els.letter.textContent = letter;
-      els.cat.textContent = category;
-      els.letter.classList.remove('animate-pop-in'); void els.letter.offsetWidth;
-      els.letter.classList.add('animate-pop-in');
-      if (!firstTime) confettiBurst();
-      startTurn();
+    function categoryFor(band) {
+      const list = CATEGORIES.filter(c => c.ages.includes(band));
+      return (pick(list) || pick(CATEGORIES)).name;
     }
 
     function startTurn() {
       if (finished) return;
-      renderTurn();
+      const p = currentPlayer();
+      const letter = pick(LETTERS);
+      const category = categoryFor(ageOf[p.id]);
+
+      els.cat.textContent = category;
+      els.letter.textContent = letter;
+      els.letter.classList.remove('animate-pop-in'); void els.letter.offsetWidth;
+      els.letter.classList.add('animate-pop-in');
+
+      els.who.innerHTML = `
+        <p class="uppercase tracking-widest text-slate-400 text-sm font-bold">Turno de</p>
+        <div class="flex items-center justify-center gap-3 mt-1">
+          <span class="text-6xl md:text-7xl animate-float inline-block">${p.avatar}</span>
+          <span class="text-4xl md:text-6xl font-display font-extrabold text-amber-300">${esc(p.name)}</span>
+        </div>
+        <p class="text-slate-400 text-sm mt-1">${AGE_LABELS[ageOf[p.id]].emoji} ${AGE_LABELS[ageOf[p.id]].label}</p>`;
+
+      els.lives.innerHTML = alive.map(a =>
+        `<div class="px-3 py-1 rounded-xl ${a.id === p.id ? 'bg-amber-500/30 ring-2 ring-amber-400' : 'bg-slate-800/60'} text-sm font-bold flex items-center gap-1">
+          <span>${a.avatar}</span><span>${esc(a.name)}</span><span class="ml-1">${'❤️'.repeat(a.lives)}</span>
+        </div>`).join('');
+      els.msg.textContent = '¡Di una palabra y presiona ESPACIO!';
+
       if (timer) timer.stop();
       timer = makeTimer(time, {
         dangerAt: 5,
@@ -60,23 +92,10 @@ export const stopGame = {
       });
     }
 
-    function renderTurn() {
-      const p = currentPlayer();
-      els.who.innerHTML = `<span class="text-5xl animate-float inline-block">${p.avatar}</span>
-        <span class="text-2xl md:text-3xl font-display font-extrabold ml-2">${esc(p.name)}</span>`;
-      els.lives.innerHTML = alive.map(a =>
-        `<div class="px-3 py-1 rounded-xl ${a.id === p.id ? 'bg-amber-500/30 ring-2 ring-amber-400' : 'bg-slate-800/60'} text-sm font-bold flex items-center gap-1">
-          <span>${a.avatar}</span><span>${esc(a.name)}</span>
-          <span class="ml-1">${'❤️'.repeat(a.lives)}</span>
-        </div>`).join('');
-      els.msg.textContent = '¡Di una palabra y presiona ESPACIO!';
-    }
-
     function passTurn() {
       if (finished) return;
       sfx.good();
       turnPos = (turnPos + 1) % alive.length;
-      // mismo letra/categoría, solo reinicia tiempo y turno
       startTurn();
     }
 
@@ -85,13 +104,16 @@ export const stopGame = {
       sfx.buzz();
       const p = currentPlayer();
       p.lives -= 1;
-      flashDanger();
+      els.timer.textContent = '0';
+      els.timer.classList.add('animate-shake');
+      setTimeout(() => els.timer.classList.remove('animate-shake'), 500);
+
       if (p.lives <= 0) {
         eliminate(turnPos);
       } else {
         toast(`${p.name} se quedó limpio 😬 (-1 vida)`, 'bad');
         turnPos = (turnPos + 1) % alive.length;
-        newRound(false);
+        startTurn();
       }
     }
 
@@ -103,12 +125,10 @@ export const stopGame = {
       alive.splice(pos, 1);
       placement -= 1;
 
-      if (alive.length === 1) {
-        return win(alive[0]);
-      }
+      if (alive.length === 1) return win(alive[0]);
       if (pos >= alive.length) pos = 0;
-      turnPos = pos; // el siguiente toma el turno
-      newRound(false);
+      turnPos = pos;
+      startTurn();
     }
 
     function win(player) {
@@ -130,38 +150,21 @@ export const stopGame = {
         </div>`;
     }
 
-    function flashDanger() {
-      els.timer.textContent = '0';
-      els.timer.classList.add('animate-shake');
-      setTimeout(() => els.timer.classList.remove('animate-shake'), 500);
-    }
-
-    // ---- Teclado ----
     function onKey(e) {
       if (finished) return;
-      if (e.code === 'Space') {
-        e.preventDefault();
-        passTurn();
-      } else if (e.key === 'Escape') {
-        api.exit();
-      }
+      if (e.code === 'Space') { e.preventDefault(); passTurn(); }
+      else if (e.key === 'Escape') { api.exit(); }
     }
-    document.addEventListener('keydown', onKey);
-
-    // Click en el botón táctil de "pasar" (para TV con control/teléfono)
     function onClick(e) {
       if (e.target.closest('[data-pass]')) { if (!finished) passTurn(); }
     }
-    root.addEventListener('click', onClick);
 
-    // Teardown
     return () => {
       document.removeEventListener('keydown', onKey);
       root.removeEventListener('click', onClick);
       if (timer) timer.stop();
     };
 
-    // ---- Vista ----
     function shell() {
       return `
       <div class="min-h-screen p-4 md:p-8 relative">

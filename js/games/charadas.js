@@ -1,10 +1,13 @@
 /* ===========================================================
    games/charadas.js — CHARADAS Y MÍMICAS
-   Un jugador actúa sin hablar. Botones gigantes ¡Adivinó! / Pasar.
-   Temporizador configurable. Cada acierto = +100 al actor.
+   Palabras por TEMA, sin hablar. Dificultad según la edad del actor
+   (la niña recibe solo palabras fáciles). +pts por acierto.
    =========================================================== */
 import { CHARADAS, CHARADAS_CONFIG } from '../data/charadas.js';
-import { $, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast, backBtn } from '../ui.js';
+import {
+  $, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx,
+  backBtn, ageAssignScreen, AGE_TO_LEVELS, AGE_LABELS,
+} from '../ui.js';
 
 export const charadasGame = {
   ...CHARADAS_CONFIG,
@@ -16,26 +19,38 @@ export const charadasGame = {
 
   start(root, players, cfg, api) {
     const time = cfg.time, ptsPerHit = cfg.points;
-
-    // Cola de palabras (sin repetir hasta agotar)
-    let deck = shuffle(CHARADAS);
-    let deckPos = 0;
-    function nextWord() {
-      if (deckPos >= deck.length) { deck = shuffle(CHARADAS); deckPos = 0; }
-      return deck[deckPos++].text;
-    }
-
-    // Orden de turnos: cada jugador actúa `rounds` veces
-    const turns = [];
-    for (let r = 0; r < cfg.rounds; r++) players.forEach(p => turns.push(p));
-    let turnIdx = 0;
-    let timer = null;
-    let teardownKey = null;
+    const ageOf = {};
+    let timer = null, teardownKey = null;
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
 
-    showReady();
+    // Colas de palabras por nivel para no repetir
+    const queues = {};
+    function nextWordFor(band) {
+      const levels = AGE_TO_LEVELS[band] || ['facil'];
+      const key = band;
+      if (!queues[key] || queues[key].pos >= queues[key].list.length) {
+        queues[key] = { list: shuffle(CHARADAS.filter(c => levels.includes(c.nivel))), pos: 0 };
+      }
+      return queues[key].list[queues[key].pos++];
+    }
 
-    // ---- Pantalla "prepárate" ----
+    // 1) Asignar edades
+    ageAssignScreen(root, players, ageOf, {
+      title: 'Charadas: nivel de cada jugador',
+      color: 'pink', emoji: '🎭',
+      intro: 'La niña actúa palabras fáciles; los mayores, más difíciles.',
+      onStart: beginGame,
+    });
+
+    // 2) Secuencia de turnos
+    let turns = [], turnIdx = 0;
+    function beginGame() {
+      turns = [];
+      for (let r = 0; r < cfg.rounds; r++) players.forEach(p => turns.push(p));
+      turnIdx = 0;
+      showReady();
+    }
+
     function showReady() {
       cleanup();
       if (turnIdx >= turns.length) return showFinal();
@@ -44,9 +59,11 @@ export const charadasGame = {
       root.innerHTML = `
       <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 relative">
         ${backBtn()}
-        <p class="uppercase tracking-widest text-pink-400 font-bold text-sm mb-2">Charadas y Mímicas · Vuelta ${vuelta}/${cfg.rounds}</p>
-        <div class="text-8xl mb-4 animate-float">${p.avatar}</div>
-        <h1 class="text-4xl md:text-5xl font-display font-extrabold mb-2">Turno de ${esc(p.name)}</h1>
+        <p class="uppercase tracking-widest text-pink-400 font-bold text-sm mb-2">Charadas · Vuelta ${vuelta}/${cfg.rounds}</p>
+        <div class="text-[7rem] md:text-9xl mb-2 animate-float">${p.avatar}</div>
+        <p class="uppercase tracking-widest text-slate-400 text-sm font-bold">Le toca a</p>
+        <h1 class="text-5xl md:text-7xl font-display font-extrabold mb-1 text-pink-300">${esc(p.name)}</h1>
+        <p class="text-slate-400 mb-6">${AGE_LABELS[ageOf[p.id]].emoji} Nivel ${AGE_LABELS[ageOf[p.id]].tip.toLowerCase()}</p>
         <p class="text-slate-300 text-lg mb-8 max-w-md">Párate al frente 🙆 Actúa <b>SIN HABLAR</b>. Tu familia adivina. El que opera el teclado marca los aciertos.</p>
         <button data-go class="btn-press px-12 py-6 rounded-2xl bg-pink-500 text-white text-2xl font-extrabold animate-pulse-fast">▶️ ¡Empezar!</button>
         <p class="text-slate-500 text-sm mt-6">Tendrás <b>${time}s</b>. Cada acierto suma <b>+${ptsPerHit}</b>.</p>
@@ -54,24 +71,24 @@ export const charadasGame = {
       $('[data-go]').onclick = playTurn;
     }
 
-    // ---- Turno activo ----
     function playTurn() {
       const p = turns[turnIdx];
+      const band = ageOf[p.id];
       let hits = 0;
-      let current = nextWord();
+      let current = nextWordFor(band);
 
       root.innerHTML = `
       <div class="min-h-screen flex flex-col p-4 md:p-8 relative">
         <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2 text-xl font-bold"><span class="text-3xl">${p.avatar}</span> ${esc(p.name)}</div>
+          <div class="flex items-center gap-2 text-2xl md:text-4xl font-display font-extrabold text-pink-300"><span class="text-4xl md:text-5xl">${p.avatar}</span> ${esc(p.name)}</div>
           <div id="ch-timer" class="text-5xl md:text-6xl font-display font-extrabold">${time}</div>
           <div class="text-lg font-bold text-pink-400">Aciertos: <span id="ch-hits">0</span></div>
         </div>
 
         <div class="flex-1 flex items-center justify-center">
           <div class="card p-8 md:p-12 max-w-3xl w-full text-center">
-            <p class="text-slate-400 uppercase text-sm tracking-widest mb-4">Actúa esto</p>
-            <p id="ch-word" class="text-3xl md:text-5xl font-display font-extrabold text-pink-300 leading-tight">${esc(current)}</p>
+            <p id="ch-cat" class="text-base md:text-xl uppercase tracking-widest text-pink-400 font-bold mb-3"></p>
+            <p id="ch-word" class="text-4xl md:text-6xl font-display font-extrabold text-pink-200 leading-tight"></p>
           </div>
         </div>
 
@@ -82,22 +99,25 @@ export const charadasGame = {
         <p class="text-center text-slate-500 text-sm mt-4">ESPACIO/Enter = adivinó · Flecha derecha o P = pasar</p>
       </div>`;
 
-      const wordEl = $('#ch-word'), timerEl = $('#ch-timer'), hitsEl = $('#ch-hits');
+      const wordEl = $('#ch-word'), catEl = $('#ch-cat'), timerEl = $('#ch-timer'), hitsEl = $('#ch-hits');
 
-      function refreshWord(animClass) {
-        current = nextWord();
-        wordEl.textContent = current;
+      function paintWord(animClass) {
+        catEl.textContent = '🏷️ ' + current.cat;
+        wordEl.textContent = current.word;
         wordEl.classList.remove('animate-pop-in', 'animate-shake'); void wordEl.offsetWidth;
         wordEl.classList.add(animClass);
       }
+      paintWord('animate-pop-in');
+
+      function refresh(anim) { current = nextWordFor(band); paintWord(anim); }
       function doHit() {
         hits++; sessionScore[p.id] += ptsPerHit;
         api.addPoints(p.id, ptsPerHit);
         hitsEl.textContent = hits;
         sfx.good(); confettiBurst();
-        refreshWord('animate-pop-in');
+        refresh('animate-pop-in');
       }
-      function doSkip() { sfx.pass(); refreshWord('animate-shake'); }
+      function doSkip() { sfx.pass(); refresh('animate-shake'); }
 
       $('[data-hit]').onclick = doHit;
       $('[data-skip]').onclick = doSkip;
@@ -160,7 +180,6 @@ export const charadasGame = {
       if (timer) { timer.stop(); timer = null; }
       if (teardownKey) { teardownKey(); teardownKey = null; }
     }
-
     return cleanup;
   },
 };

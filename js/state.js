@@ -4,11 +4,18 @@
 
 const STORAGE_KEY = 'panama-party-game:v1';
 
-// Avatares divertidos (emojis) para elegir
+// Avatares divertidos (emojis) para elegir — lista amplia
 export const AVATARS = [
+  // Animales
   '🦥', '🐸', '🦜', '🐢', '🦦', '🐆', '🐬', '🦋',
   '🐙', '🦩', '🐝', '🦈', '🐧', '🦚', '🐳', '🦊',
+  '🐶', '🐱', '🦁', '🐯', '🐨', '🐼', '🐵', '🦄',
+  '🐲', '🦖', '🐊', '🦓', '🦒', '🐘', '🦏', '🦛',
+  '🐰', '🐹', '🦔', '🐮', '🐷', '🐔', '🦉', '🦅',
+  // Caras y personajes
   '👾', '🤠', '🥸', '🤡', '👽', '🤖', '🦸', '🧙',
+  '😎', '🥳', '🤩', '😺', '🦹', '🧛', '🧟', '🧚',
+  '🤴', '👸', '🥷', '🧑‍🚀', '🤓', '😼', '👻', '💀',
 ];
 
 const DEFAULT_STATE = () => ({

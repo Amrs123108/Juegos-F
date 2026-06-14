@@ -160,3 +160,81 @@ export function paintTimer(el, remaining, dangerAt = 5) {
   if (remaining <= dangerAt) el.classList.add('timer-danger');
   else el.classList.remove('timer-danger');
 }
+
+/* ---------------- Edades (compartido por varios juegos) ---------------- */
+export const AGE_BANDS = ['nina', 'ado', 'adulto'];
+export const AGE_LABELS = {
+  nina:   { label: 'Niña (8)',   emoji: '🧒', tip: 'Fácil' },
+  ado:    { label: 'Joven (14+)', emoji: '🧑', tip: 'Medio' },
+  adulto: { label: 'Adulto',     emoji: '🧔', tip: 'Difícil' },
+};
+// Qué niveles de dificultad puede recibir cada banda de edad
+export const AGE_TO_LEVELS = {
+  nina:   ['facil'],
+  ado:    ['facil', 'media'],
+  adulto: ['facil', 'media', 'dificil'],
+};
+
+/** Pantalla reutilizable para asignar una banda de edad a cada jugador.
+   Rellena/usa el objeto `ageOf` (id -> banda) y llama onStart() al continuar. */
+export function ageAssignScreen(root, players, ageOf, opts = {}) {
+  const { title = 'Asigna la edad de cada jugador', color = 'violet', emoji = '🎮', intro = '', onStart } = opts;
+  players.forEach((p, i) => { if (!ageOf[p.id]) ageOf[p.id] = AGE_BANDS[i % AGE_BANDS.length]; });
+
+  const sel = {
+    violet: 'bg-violet-500 border-violet-300',
+    emerald: 'bg-emerald-500 border-emerald-300',
+    amber: 'bg-amber-500 border-amber-300 text-slate-900',
+    pink: 'bg-pink-500 border-pink-300',
+    cyan: 'bg-cyan-500 border-cyan-300 text-slate-900',
+    rose: 'bg-rose-500 border-rose-300',
+  }[color] || 'bg-violet-500 border-violet-300';
+  const btnColor = {
+    violet: 'bg-violet-500', emerald: 'bg-emerald-500', amber: 'bg-amber-500 text-slate-900',
+    pink: 'bg-pink-500', cyan: 'bg-cyan-500 text-slate-900', rose: 'bg-rose-500',
+  }[color] || 'bg-violet-500';
+
+  root.innerHTML = `
+    <div class="min-h-screen p-4 md:p-8 relative">
+      ${backBtn('← Menú')}
+      <div class="max-w-3xl mx-auto pt-16">
+        <div class="text-center mb-6">
+          <div class="text-6xl mb-2">${emoji}</div>
+          <h1 class="text-3xl md:text-4xl font-display font-extrabold">${esc(title)}</h1>
+          ${intro ? `<p class="text-slate-300 mt-2">${esc(intro)}</p>` : ''}
+        </div>
+        <div class="space-y-3">
+          ${players.map(p => `
+            <div class="card p-4 flex flex-col md:flex-row md:items-center gap-3">
+              <div class="flex items-center gap-2 font-bold text-lg flex-1"><span class="text-3xl">${p.avatar}</span> ${esc(p.name)}</div>
+              <div class="grid grid-cols-3 gap-2" data-player="${p.id}">
+                ${AGE_BANDS.map(b => `
+                  <button data-band="${b}" class="btn-press px-3 py-3 rounded-xl text-sm font-bold border-2 ${ageOf[p.id] === b ? sel : 'bg-slate-800/60 border-slate-700'}">
+                    ${AGE_LABELS[b].emoji} ${AGE_LABELS[b].label}
+                  </button>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
+        <p class="text-center text-slate-500 text-sm mt-4">Niña = preguntas/palabras fáciles · Joven 14+ = medio (incluye mates) · Adulto = difícil</p>
+        <div class="text-center mt-8">
+          <button data-start class="btn-press px-12 py-5 rounded-2xl ${btnColor} text-white text-xl font-extrabold">▶️ Empezar</button>
+        </div>
+      </div>
+    </div>`;
+
+  $$('[data-player]').forEach(group => {
+    const pid = group.getAttribute('data-player');
+    group.querySelectorAll('[data-band]').forEach(btn => {
+      btn.onclick = () => {
+        ageOf[pid] = btn.getAttribute('data-band');
+        group.querySelectorAll('[data-band]').forEach(b => {
+          const on = b.getAttribute('data-band') === ageOf[pid];
+          b.className = `btn-press px-3 py-3 rounded-xl text-sm font-bold border-2 ${on ? sel : 'bg-slate-800/60 border-slate-700'}`;
+        });
+        sfx.tick();
+      };
+    });
+  });
+  const startBtn = $('[data-start]');
+  if (startBtn) startBtn.onclick = () => onStart && onStart(ageOf);
+}

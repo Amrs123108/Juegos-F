@@ -1,10 +1,12 @@
 /* ===========================================================
    games/trivia.js — TRIVIA DEL PATIO
-   Opción múltiple A-D, 20s. Preguntas filtradas por edad del jugador.
-   Antes de jugar se asigna una banda de edad a cada participante.
+   Opción múltiple A-D. Preguntas filtradas por edad del jugador.
    =========================================================== */
-import { TRIVIA, TRIVIA_CONFIG, AGE_LABELS } from '../data/trivia.js';
-import { $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast, backBtn } from '../ui.js';
+import { TRIVIA, TRIVIA_CONFIG } from '../data/trivia.js';
+import {
+  $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast,
+  backBtn, ageAssignScreen, AGE_LABELS,
+} from '../ui.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -12,17 +14,14 @@ export const triviaGame = {
   ...TRIVIA_CONFIG,
   config: [
     { key: 'time', label: 'Segundos por pregunta', type: 'number', min: 10, max: 40, step: 5, default: 20 },
-    { key: 'rounds', label: 'Preguntas por jugador', type: 'number', min: 1, max: 6, step: 1, default: 3 },
+    { key: 'rounds', label: 'Preguntas por jugador', type: 'number', min: 1, max: 8, step: 1, default: 4 },
   ],
 
   start(root, players, cfg, api) {
     const time = cfg.time;
-    // Asignación de banda de edad por jugador (default round-robin sensato)
-    const bands = ['nina', 'ado', 'adulto'];
     const ageOf = {};
-    players.forEach((p, i) => { ageOf[p.id] = bands[i % bands.length]; });
 
-    // Pools por edad
+    // Pools por edad (se rebarajan al agotarse)
     const pools = {
       nina: shuffle(TRIVIA.filter(t => t.age === 'nina')),
       ado: shuffle(TRIVIA.filter(t => t.age === 'ado')),
@@ -37,54 +36,13 @@ export const triviaGame = {
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
     let timer = null, teardownKey = null;
 
-    showAssign();
+    // 1) Asignar edades
+    ageAssignScreen(root, players, ageOf, {
+      title: 'Trivia: nivel de cada jugador', color: 'violet', emoji: '🧠',
+      onStart: beginRounds,
+    });
 
-    /* ---------- Pantalla: asignar edades ---------- */
-    function showAssign() {
-      cleanup();
-      root.innerHTML = `
-      <div class="min-h-screen p-4 md:p-8 relative">
-        ${backBtn()}
-        <div class="max-w-3xl mx-auto pt-16">
-          <h1 class="text-3xl md:text-4xl font-display font-extrabold text-center text-violet-400 mb-1">🧠 Trivia del Patio</h1>
-          <p class="text-center text-slate-300 mb-8">Asigna a cada jugador su nivel de preguntas:</p>
-          <div class="space-y-3">
-            ${players.map(p => `
-              <div class="card p-4 flex flex-col md:flex-row md:items-center gap-3">
-                <div class="flex items-center gap-2 font-bold text-lg flex-1"><span class="text-3xl">${p.avatar}</span> ${esc(p.name)}</div>
-                <div class="grid grid-cols-3 gap-2" data-player="${p.id}">
-                  ${bands.map(b => `
-                    <button data-band="${b}" class="btn-press px-3 py-3 rounded-xl text-sm font-bold border-2 ${ageOf[p.id] === b ? 'bg-violet-500 border-violet-300' : 'bg-slate-800/60 border-slate-700'}">
-                      ${AGE_LABELS[b].emoji} ${AGE_LABELS[b].label}
-                    </button>`).join('')}
-                </div>
-              </div>`).join('')}
-          </div>
-          <p class="text-center text-slate-500 text-sm mt-4">Niña: pelis/animales · Ado: gaming/urbano · Adultos: Canal/historia/música nacional</p>
-          <div class="text-center mt-8">
-            <button data-start class="btn-press px-12 py-5 rounded-2xl bg-violet-500 text-white text-xl font-extrabold">▶️ Empezar Trivia</button>
-          </div>
-        </div>
-      </div>`;
-
-      $$('[data-player]').forEach(group => {
-        const pid = group.getAttribute('data-player');
-        group.querySelectorAll('[data-band]').forEach(btn => {
-          btn.onclick = () => {
-            ageOf[pid] = btn.getAttribute('data-band');
-            group.querySelectorAll('[data-band]').forEach(b => {
-              const on = b.getAttribute('data-band') === ageOf[pid];
-              b.className = `btn-press px-3 py-3 rounded-xl text-sm font-bold border-2 ${on ? 'bg-violet-500 border-violet-300' : 'bg-slate-800/60 border-slate-700'}`;
-            });
-          };
-        });
-      });
-      $('[data-start]').onclick = beginRounds;
-    }
-
-    /* ---------- Secuencia de turnos ---------- */
-    let turns = [];
-    let turnIdx = 0;
+    let turns = [], turnIdx = 0;
     function beginRounds() {
       turns = [];
       for (let r = 0; r < cfg.rounds; r++) players.forEach(p => turns.push(p));
@@ -100,15 +58,14 @@ export const triviaGame = {
       const Q = nextQuestion(age);
       let answered = false;
 
-      // Opciones barajadas manteniendo el índice correcto
       const opts = shuffle(Q.options.map((text, i) => ({ text, correct: i === Q.correct })));
 
       root.innerHTML = `
       <div class="min-h-screen p-4 md:p-8 relative flex flex-col">
         ${backBtn()}
         <div class="flex items-center justify-between pt-12 max-w-4xl mx-auto w-full">
-          <div class="flex items-center gap-2 font-bold text-lg"><span class="text-3xl">${p.avatar}</span> ${esc(p.name)}
-            <span class="ml-2 text-xs px-2 py-1 rounded-lg bg-violet-500/30">${AGE_LABELS[age].emoji} ${AGE_LABELS[age].label}</span>
+          <div class="flex items-center gap-2 font-display font-extrabold text-2xl md:text-4xl text-violet-300"><span class="text-4xl md:text-5xl">${p.avatar}</span> ${esc(p.name)}
+            <span class="ml-2 text-xs font-body px-2 py-1 rounded-lg bg-violet-500/30 self-center">${AGE_LABELS[age].emoji} ${AGE_LABELS[age].label}</span>
           </div>
           <div id="tv-timer" class="text-5xl md:text-6xl font-display font-extrabold">${time}</div>
         </div>
@@ -140,8 +97,8 @@ export const triviaGame = {
       function reveal(chosenIdx) {
         if (answered) return;
         answered = true;
-        if (timer) timer.stop();
         const remaining = timer ? Math.max(0, timer.remaining) : 0;
+        if (timer) timer.stop();
         const buttons = $$('#tv-opts [data-opt]');
         let gotIt = false;
 
@@ -169,7 +126,6 @@ export const triviaGame = {
           sfx.bad(); toast('Incorrecto 😅', 'bad');
         }
 
-        // Botón continuar
         const cont = document.createElement('div');
         cont.className = 'text-center mt-6';
         cont.innerHTML = `<button data-next class="btn-press px-10 py-4 rounded-2xl ${gotIt ? 'bg-emerald-500' : 'bg-slate-700'} text-white text-xl font-extrabold">${turnIdx + 1 >= turns.length ? '🏁 Resultados' : '➡️ Siguiente'}</button>`;
@@ -197,7 +153,6 @@ export const triviaGame = {
       teardownKey = () => document.removeEventListener('keydown', onKey);
     }
 
-    /* ---------- Final ---------- */
     function showFinal() {
       cleanup();
       api.logGame(triviaGame.name, 'Ronda completada');

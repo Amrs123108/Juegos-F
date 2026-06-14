@@ -12,8 +12,10 @@ import { stopGame } from './games/stop.js';
 import { ahorcadoGame } from './games/ahorcado.js';
 import { triviaGame } from './games/trivia.js';
 import { charadasGame } from './games/charadas.js';
+import { crucigramaGame } from './games/crucigrama.js';
+import { adivinaloGame } from './games/adivinalo.js';
 
-const GAMES = [stopGame, ahorcadoGame, triviaGame, charadasGame];
+const GAMES = [stopGame, ahorcadoGame, triviaGame, charadasGame, crucigramaGame, adivinaloGame];
 const gameById = (id) => GAMES.find(g => g.id === id);
 
 const COLOR = {
@@ -21,6 +23,8 @@ const COLOR = {
   emerald: { ring: 'ring-emerald-400', text: 'text-emerald-400', btn: 'bg-emerald-500 text-white',   glow: 'shadow-emerald-500/30' },
   violet:  { ring: 'ring-violet-400',  text: 'text-violet-400',  btn: 'bg-violet-500 text-white',    glow: 'shadow-violet-500/30' },
   pink:    { ring: 'ring-pink-400',    text: 'text-pink-400',    btn: 'bg-pink-500 text-white',      glow: 'shadow-pink-500/30' },
+  cyan:    { ring: 'ring-cyan-400',    text: 'text-cyan-400',    btn: 'bg-cyan-500 text-slate-900',  glow: 'shadow-cyan-500/30' },
+  rose:    { ring: 'ring-rose-400',    text: 'text-rose-400',    btn: 'bg-rose-500 text-white',      glow: 'shadow-rose-500/30' },
 };
 
 // Estado de navegación
@@ -90,16 +94,12 @@ function screenHome() {
   }
   renderSlots();
 
-  // Delegación de eventos
+  // Delegación de eventos: abre el selector amplio de avatares
   $('#slots').addEventListener('click', (e) => {
     const b = e.target.closest('[data-avatar]');
     if (!b) return;
     const i = Number(b.getAttribute('data-avatar'));
-    const cur = AVATARS.indexOf(slots[i].avatar);
-    slots[i].avatar = AVATARS[(cur + 1) % AVATARS.length];
-    b.textContent = slots[i].avatar;
-    b.classList.remove('animate-pop-in'); void b.offsetWidth; b.classList.add('animate-pop-in');
-    sfx.tick();
+    openAvatarPicker(slots, i, b);
   });
   $('#slots').addEventListener('input', (e) => {
     const inp = e.target.closest('[data-name]');
@@ -120,6 +120,49 @@ function screenHome() {
       fullReset(); screenHome();
     }
   };
+}
+
+/* =====================================================================
+   Selector amplio de avatares (modal con cuadrícula)
+   ===================================================================== */
+function openAvatarPicker(slots, index, btnEl) {
+  sfx.tick();
+  const taken = slots.map((s, i) => (i === index ? null : s.avatar)).filter(Boolean);
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur flex items-center justify-center p-4 animate-pop-in';
+  modal.innerHTML = `
+    <div class="card p-6 w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-2xl font-display font-extrabold">Elige un avatar</h3>
+        <button data-close class="btn-press w-10 h-10 rounded-xl bg-slate-700 text-xl font-extrabold">✕</button>
+      </div>
+      <div class="grid grid-cols-6 sm:grid-cols-8 gap-2 overflow-y-auto pr-1">
+        ${AVATARS.map(a => {
+          const isCurrent = a === slots[index].avatar;
+          const isTaken = taken.includes(a);
+          return `<button data-pick="${a}" title="${isTaken ? 'En uso por otro jugador' : ''}"
+            class="btn-press text-3xl md:text-4xl aspect-square grid place-items-center rounded-xl
+            ${isCurrent ? 'bg-violet-600 ring-2 ring-violet-300' : 'bg-slate-800/70 hover:bg-violet-600/40'}
+            ${isTaken && !isCurrent ? 'opacity-40' : ''}">${a}</button>`;
+        }).join('')}
+      </div>
+      <p class="text-center text-slate-500 text-xs mt-3">Los atenuados ya los usa otro jugador (igual puedes elegirlos)</p>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const close = () => modal.remove();
+  modal.querySelector('[data-close]').onclick = close;
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  modal.querySelectorAll('[data-pick]').forEach(b => {
+    b.onclick = () => {
+      slots[index].avatar = b.getAttribute('data-pick');
+      btnEl.textContent = slots[index].avatar;
+      btnEl.classList.remove('animate-pop-in'); void btnEl.offsetWidth; btnEl.classList.add('animate-pop-in');
+      sfx.good();
+      close();
+    };
+  });
 }
 
 /* =====================================================================
@@ -258,6 +301,15 @@ function screenScoreboard() {
           <h1 class="text-3xl md:text-4xl font-display font-extrabold text-amber-400">🏅 Tablero de la Noche</h1>
           <button data-action="home" class="btn-press px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 font-bold">← Menú</button>
         </div>
+
+        ${ranking[0] && ranking[0].score > 0 ? `
+          <div class="card p-6 mb-6 text-center bg-gradient-to-br from-amber-500/20 to-violet-500/10 ring-2 ring-amber-400 animate-pop-in">
+            <p class="uppercase tracking-widest text-amber-300 text-sm font-bold">👑 Ganador del día</p>
+            <div class="text-7xl my-2 animate-float">${ranking[0].avatar}</div>
+            <p class="text-4xl md:text-5xl font-display font-extrabold text-amber-300">${esc(ranking[0].name)}</p>
+            <p class="text-xl text-slate-300 mt-1">${ranking[0].score} puntos</p>
+          </div>` : `
+          <div class="card p-5 mb-6 text-center text-slate-400">Aún no hay puntos. ¡Jueguen una ronda para coronar al ganador del día! 🎮</div>`}
 
         <div class="space-y-3">
           ${ranking.map((p, i) => {

@@ -9,12 +9,14 @@ Altamente animado, moderno y responsivo. **Sin build step**: solo HTML + ES Modu
 
 | Modo | Emoji | Descripción |
 |------|-------|-------------|
-| **Stop Veloz en la Sala** | ⚡ | Letra + categoría panameña. Di una palabra y presiona **ESPACIO** antes de que el tiempo llegue a 0. Eliminatorio por vidas hasta que quede un solo ganador. |
-| **Ahorcado Cooperativo** | 💀 | Toda la familia contra la máquina. Frases panameñas, **3 niveles de pistas** (difícil → regalada) y 6 errores antes de que se dibuje el ahorcado (animado en CSS). |
-| **Trivia del Patio** | 🧠 | Opción múltiple A–D con 20 s. Preguntas **filtradas por edad** (Niña 8 / Adolescente 14 / Adultos 27-50). |
-| **Charadas y Mímicas** | 🎭 | Un jugador actúa **sin hablar** una situación panameña. Botones gigantes **¡Adivinó!** / **Pasar** con temporizador configurable. |
+| **Stop Veloz en la Sala** | ⚡ | Letra + categoría **según la edad** del jugador. Di una palabra y presiona **ESPACIO** antes del 0. Eliminatorio por vidas hasta un solo ganador. |
+| **Ahorcado Cooperativo** | 💀 | Toda la familia contra la máquina. Frases panameñas, **3 niveles de pistas** y 6 errores antes de dibujar el ahorcado (animado en CSS). |
+| **Trivia del Patio** | 🧠 | Opción múltiple A–D. Preguntas **filtradas por edad** (Niña 8 / Joven 14+ / Adulto): Disney para todos, **matemáticas 14+**, pelis famosas, Canal, música nacional, hogar/cocina y más. |
+| **Charadas y Mímicas** | 🎭 | Actúa **palabras por tema** (animales, profesiones, comida…) sin hablar. La dificultad se ajusta a la edad del actor. Botones gigantes **¡Adivinó!** / **Pasar**. |
+| **Crucigrama Familiar** | 🧩 | Cooperativo. Cuadrícula **generada automáticamente** con pistas (¡varias con emoji-imagen!). Revelar-letra como ayuda. |
+| **¡Adivínalo!** | 🔍 | Una **imagen (emoji) se revela por mosaicos** poco a poco. Adivina antes de que se descubra: mientras menos pistas, más puntos. Dificultad por edad. |
 
-Cada modo tiene un **banco de datos con 50+ elementos** y referencias locales (comidas, jergas, lugares, famosos, Canal, música, etc.).
+Cada modo tiene un **banco de datos con 50+ elementos**. La clasificación por edad usa **🧒 Niña (8) = fácil**, **🧑 Joven (14+) = medio (incluye mates)**, **🧔 Adulto = difícil**.
 
 ---
 
@@ -44,15 +46,19 @@ JF/
     ├── state.js            # Estado global persistente (jugadores/puntajes)
     ├── ui.js               # Helpers: render, confeti, sonidos, timers, toast
     ├── data/               # 🗃️ Bancos de datos (50+ c/u)
-    │   ├── stop.js
+    │   ├── stop.js         # categorías etiquetadas por edad
     │   ├── ahorcado.js
-    │   ├── trivia.js
-    │   └── charadas.js
+    │   ├── trivia.js       # preguntas por edad (Disney, mates, etc.)
+    │   ├── charadas.js     # palabras por tema y nivel
+    │   ├── crucigrama.js   # palabras + pistas (con emoji)
+    │   └── adivinalo.js    # imágenes-emoji por edad
     └── games/              # 🎮 Lógica de cada modo
         ├── stop.js
         ├── ahorcado.js
         ├── trivia.js
-        └── charadas.js
+        ├── charadas.js
+        ├── crucigrama.js   # incluye el generador de cuadrícula
+        └── adivinalo.js
 ```
 
 ---
@@ -104,9 +110,13 @@ Luego abre `http://localhost:3000` (o el puerto que indique) en el navegador.
 ## 🛠️ Cómo agregar más contenido
 
 Edita los archivos en `js/data/`:
-- **Categorías de Stop** → `stop.js` (arreglo `CATEGORIES`).
-- **Frases de Ahorcado** → `ahorcado.js` (cada una con `answer`, `category` y 3 `hints`).
-- **Preguntas de Trivia** → `trivia.js` (con `age`, `q`, 4 `options` y el índice `correct`).
-- **Acciones de Charadas** → `charadas.js` (con `text` y `nivel`).
+- **Categorías de Stop** → `stop.js` (`{ name, ages:[...] }`).
+- **Frases de Ahorcado** → `ahorcado.js` (`answer`, `category` y 3 `hints`).
+- **Preguntas de Trivia** → `trivia.js` (`age`, `cat`, `q`, 4 `options` y el índice `correct`).
+- **Palabras de Charadas** → `charadas.js` (`word`, `cat`, `nivel`).
+- **Crucigrama** → `crucigrama.js` (`word` en MAYÚSCULAS sin acentos, `clue`, `emoji?`, `nivel`).
+- **¡Adivínalo!** → `adivinalo.js` (`emoji`, `answer`, `cat`, `age`).
+
+> Las edades usan los valores `nina`, `ado`, `adulto`. Los niveles de Charadas son `facil`, `media`, `dificil`.
 
 ¡A disfrutar en familia! 🇵🇦❤️
