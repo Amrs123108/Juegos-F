@@ -35,6 +35,9 @@ export const ahorcadoGame = {
     function playWord(item) {
       const answer = item.answer;
       const answerLetters = new Set(norm(answer).split('').filter(c => /[A-ZÑ]/.test(c)));
+      // Conteo de casillas: total de letras y longitud de cada palabra
+      const wordLens = answer.split(' ').filter(Boolean).map(w => norm(w).replace(/[^A-ZÑ]/g, '').length);
+      const totalLetters = wordLens.reduce((a, b) => a + b, 0);
       const guessed = new Set();
       let errors = 0;
       let hintsUsed = 0;
@@ -48,6 +51,7 @@ export const ahorcadoGame = {
           <div class="text-center mb-4">
             <p class="uppercase tracking-widest text-emerald-400 font-bold text-sm">Ahorcado Cooperativo · Palabra ${roundIdx + 1}/${deck.length}</p>
             <p class="text-slate-400 text-sm mt-1">Categoría: <b class="text-emerald-300">${esc(item.category)}</b> · Errores: <span id="ah-err">0</span>/${maxErrors}</p>
+            <p class="text-slate-300 text-base mt-2">🔤 <b class="text-amber-300">${totalLetters}</b> ${totalLetters === 1 ? 'letra' : 'letras'}${wordLens.length > 1 ? ` · ${wordLens.length} palabras (${wordLens.join(', ')})` : ''}</p>
           </div>
 
           <div class="grid md:grid-cols-2 gap-6 items-center">

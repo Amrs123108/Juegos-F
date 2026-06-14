@@ -51,14 +51,15 @@ const api = {
 function screenHome() {
   clearGame();
   const existing = getPlayers();
-  // 5 slots; precarga lo guardado
-  const slots = [];
-  for (let i = 0; i < 5; i++) {
-    const p = existing[i];
-    slots.push({
-      name: p ? p.name : '',
-      avatar: p ? p.avatar : AVATARS[i % AVATARS.length],
-    });
+  const MIN = 2, MAX = 12;
+  // Carga TODOS los jugadores guardados; si no hay, arranca con 4 espacios
+  const slots = existing.length
+    ? existing.map(p => ({ name: p.name, avatar: p.avatar }))
+    : Array.from({ length: 4 }, (_, i) => ({ name: '', avatar: AVATARS[i % AVATARS.length] }));
+
+  function nextAvatar() {
+    const used = slots.map(s => s.avatar);
+    return AVATARS.find(a => !used.includes(a)) || AVATARS[slots.length % AVATARS.length];
   }
 
   render(`
@@ -72,10 +73,16 @@ function screenHome() {
       </div>
 
       <div class="card p-6 md:p-8 w-full max-w-2xl animate-pop-in">
-        <h2 class="text-2xl font-display font-bold mb-1">🎮 Registra a los jugadores</h2>
-        <p class="text-slate-400 text-sm mb-5">Toca el avatar para cambiarlo. Mínimo 2, máximo 5.</p>
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-2xl font-display font-bold">🎮 Registra a los jugadores</h2>
+          <span class="text-sm font-bold bg-slate-800 px-3 py-1 rounded-xl">👥 <span id="playerCount">0</span></span>
+        </div>
+        <p class="text-slate-400 text-sm mb-5">Toca el avatar para cambiarlo. Mínimo 2 · agrega a los que lleguen (máx ${MAX}).</p>
         <div id="slots" class="space-y-3"></div>
-        <button id="startBtn" class="btn-press w-full mt-6 py-4 rounded-2xl bg-emerald-500 text-white text-xl font-extrabold">
+        <button id="addBtn" class="btn-press w-full mt-3 py-3 rounded-2xl border-2 border-dashed border-slate-600 hover:border-violet-400 text-slate-300 font-bold">
+          ➕ Agregar jugador
+        </button>
+        <button id="startBtn" class="btn-press w-full mt-4 py-4 rounded-2xl bg-emerald-500 text-white text-xl font-extrabold">
           🚀 ¡A jugar!
         </button>
         ${existing.length ? `<button id="resetAll" class="w-full mt-3 py-2 text-sm text-slate-500 hover:text-rose-400 underline">Borrar todo y empezar de cero</button>` : ''}
@@ -85,30 +92,54 @@ function screenHome() {
 
   function renderSlots() {
     $('#slots').innerHTML = slots.map((s, i) => `
-      <div class="flex items-center gap-3 bg-slate-800/50 rounded-2xl p-2 pr-4">
+      <div class="flex items-center gap-3 bg-slate-800/50 rounded-2xl p-2 pr-3 animate-pop-in">
         <button data-avatar="${i}" class="btn-press text-4xl w-16 h-16 grid place-items-center rounded-2xl bg-slate-900/60 hover:bg-violet-600/40 shrink-0" title="Cambiar avatar">${s.avatar}</button>
-        <input data-name="${i}" type="text" maxlength="18" value="${esc(s.name)}" placeholder="Jugador ${i + 1}${i >= 2 ? ' (opcional)' : ''}"
-          class="flex-1 bg-transparent border-b-2 border-slate-600 focus:border-violet-400 outline-none text-xl font-bold py-2 placeholder:text-slate-600" />
+        <input data-name="${i}" type="text" maxlength="18" value="${esc(s.name)}" placeholder="Jugador ${i + 1}"
+          class="flex-1 min-w-0 bg-transparent border-b-2 border-slate-600 focus:border-violet-400 outline-none text-xl font-bold py-2 placeholder:text-slate-600" />
+        ${slots.length > MIN ? `<button data-remove="${i}" class="btn-press w-9 h-9 grid place-items-center rounded-xl bg-slate-700 hover:bg-rose-600 text-lg shrink-0" title="Quitar jugador">✕</button>` : ''}
       </div>
     `).join('');
   }
-  renderSlots();
 
-  // Delegación de eventos: abre el selector amplio de avatares
+  function updateCounter() {
+    const el = $('#playerCount');
+    if (el) el.textContent = slots.length;
+    const add = $('#addBtn');
+    if (add) {
+      add.disabled = slots.length >= MAX;
+      add.classList.toggle('opacity-40', slots.length >= MAX);
+    }
+  }
+
+  renderSlots();
+  updateCounter();
+
+  // Delegación de eventos en #slots: avatar y quitar
   $('#slots').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-avatar]');
-    if (!b) return;
-    const i = Number(b.getAttribute('data-avatar'));
-    openAvatarPicker(slots, i, b);
+    const av = e.target.closest('[data-avatar]');
+    if (av) { openAvatarPicker(slots, Number(av.getAttribute('data-avatar')), av); return; }
+    const rm = e.target.closest('[data-remove]');
+    if (rm) {
+      slots.splice(Number(rm.getAttribute('data-remove')), 1);
+      renderSlots(); updateCounter(); sfx.pass();
+    }
   });
   $('#slots').addEventListener('input', (e) => {
     const inp = e.target.closest('[data-name]');
-    if (inp) slots[Number(inp.getAttribute('data-name'))].name = inp.value;
+    if (inp) { slots[Number(inp.getAttribute('data-name'))].name = inp.value; updateCounter(); }
   });
+
+  $('#addBtn').onclick = () => {
+    if (slots.length >= MAX) { toast(`Máximo ${MAX} jugadores`, 'warn'); return; }
+    slots.push({ name: '', avatar: nextAvatar() });
+    renderSlots(); updateCounter(); sfx.tick();
+    const inputs = $$('#slots [data-name]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  };
 
   $('#startBtn').onclick = () => {
     const chosen = slots.filter(s => s.name.trim().length > 0);
-    if (chosen.length < 2) { toast('Necesitas al menos 2 jugadores 😉', 'warn'); return; }
+    if (chosen.length < MIN) { toast('Necesitas al menos 2 jugadores 😉', 'warn'); return; }
     setPlayers(chosen);
     confettiBurst(); sfx.good();
     screenMenu();
