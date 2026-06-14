@@ -143,6 +143,7 @@ export const stopGame = {
       paused = true;
       const panel = document.createElement('div');
       panel.id = 'st-timeup';
+      panel.setAttribute('data-overlay', '');
       panel.className = 'fixed inset-0 z-40 bg-slate-900/85 backdrop-blur flex items-center justify-center p-6 animate-pop-in';
       panel.innerHTML = `
         <div class="card p-8 text-center max-w-lg">

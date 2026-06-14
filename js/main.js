@@ -14,8 +14,15 @@ import { triviaGame } from './games/trivia.js';
 import { charadasGame } from './games/charadas.js';
 import { crucigramaGame } from './games/crucigrama.js';
 import { adivinaloGame } from './games/adivinalo.js';
+import { dibujoGame } from './games/dibujo.js';
+import { emojipelisGame } from './games/emojipelis.js';
+import { respincorrectaGame } from './games/respincorrecta.js';
+import { coincidimosGame } from './games/coincidimos.js';
 
-const GAMES = [stopGame, ahorcadoGame, triviaGame, charadasGame, crucigramaGame, adivinaloGame];
+const GAMES = [
+  stopGame, ahorcadoGame, triviaGame, charadasGame, crucigramaGame, adivinaloGame,
+  dibujoGame, emojipelisGame, respincorrectaGame, coincidimosGame,
+];
 const gameById = (id) => GAMES.find(g => g.id === id);
 
 const COLOR = {
@@ -25,12 +32,17 @@ const COLOR = {
   pink:    { ring: 'ring-pink-400',    text: 'text-pink-400',    btn: 'bg-pink-500 text-white',      glow: 'shadow-pink-500/30' },
   cyan:    { ring: 'ring-cyan-400',    text: 'text-cyan-400',    btn: 'bg-cyan-500 text-slate-900',  glow: 'shadow-cyan-500/30' },
   rose:    { ring: 'ring-rose-400',    text: 'text-rose-400',    btn: 'bg-rose-500 text-white',      glow: 'shadow-rose-500/30' },
+  sky:     { ring: 'ring-sky-400',     text: 'text-sky-400',     btn: 'bg-sky-500 text-slate-900',   glow: 'shadow-sky-500/30' },
+  indigo:  { ring: 'ring-indigo-400',  text: 'text-indigo-400',  btn: 'bg-indigo-500 text-white',    glow: 'shadow-indigo-500/30' },
+  orange:  { ring: 'ring-orange-400',  text: 'text-orange-400',  btn: 'bg-orange-500 text-slate-900',glow: 'shadow-orange-500/30' },
+  teal:    { ring: 'ring-teal-400',    text: 'text-teal-400',    btn: 'bg-teal-500 text-slate-900',  glow: 'shadow-teal-500/30' },
 };
 
 // Estado de navegación
 let currentTeardown = null;
 let lastGameId = null;
 let lastConfig = null;
+let lastPlayers = null;
 
 function clearGame() {
   if (currentTeardown) { try { currentTeardown(); } catch (e) {} currentTeardown = null; }
@@ -245,9 +257,20 @@ function screenMenu() {
 /* =====================================================================
    PANTALLA: Configuración previa a la partida
    ===================================================================== */
+// Mínimo de participantes por juego (los "versus" necesitan 2)
+function minPlayersFor(game) {
+  return ['stop', 'respincorrecta', 'coincidimos'].includes(game.id) ? 2 : 1;
+}
+
 function screenConfig(game) {
   clearGame();
   const c = COLOR[game.color] || COLOR.violet;
+  const allPlayers = getPlayers();
+  const gameMin = minPlayersFor(game);
+  const selected = new Set(allPlayers.map(p => p.id)); // todos por defecto
+
+  const chipCls = (on) => `btn-press px-3 py-2 rounded-xl border-2 text-sm font-bold flex items-center gap-1.5 ${on ? 'bg-emerald-600 border-emerald-300' : 'bg-slate-800/60 border-slate-700 opacity-55'}`;
+
   render(`
     <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
       <div class="card p-8 w-full max-w-lg animate-pop-in relative">
@@ -256,6 +279,19 @@ function screenConfig(game) {
           <div class="text-6xl mb-2">${game.emoji}</div>
           <h2 class="text-3xl font-display font-extrabold ${c.text}">${esc(game.name)}</h2>
           <p class="text-slate-400 text-sm mt-1">${esc(game.short)}</p>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold">¿Quiénes juegan?</span>
+            <span class="text-sm text-slate-400"><span id="selCount">${allPlayers.length}</span>/${allPlayers.length}</span>
+          </div>
+          <div id="parts" class="flex flex-wrap gap-2">
+            ${allPlayers.map(p => `
+              <button data-tog="${p.id}" class="${chipCls(true)}"><span class="text-xl">${p.avatar}</span> ${esc(p.name)}</button>
+            `).join('')}
+          </div>
+          <p class="text-xs text-slate-500 mt-2">Toca para incluir/excluir. Mínimo ${gameMin}.</p>
         </div>
 
         <div class="space-y-4 mb-6">
@@ -281,6 +317,18 @@ function screenConfig(game) {
     </div>
   `);
 
+  // Selección de participantes
+  function updateCount() { $('#selCount').textContent = selected.size; }
+  $$('[data-tog]').forEach(b => {
+    b.onclick = () => {
+      const id = b.getAttribute('data-tog');
+      if (selected.has(id)) selected.delete(id); else selected.add(id);
+      b.className = chipCls(selected.has(id));
+      updateCount();
+      sfx.tick();
+    };
+  });
+
   // Botones +/- para los campos numéricos (onclick directo: sin acumular listeners)
   $$('[data-step]').forEach(b => {
     b.onclick = () => {
@@ -295,6 +343,7 @@ function screenConfig(game) {
   });
 
   $('#playBtn').onclick = () => {
+    if (selected.size < gameMin) { toast(`Este juego necesita al menos ${gameMin} jugador${gameMin === 1 ? '' : 'es'} 😉`, 'warn'); return; }
     const cfg = {};
     game.config.forEach(f => {
       const el = $(`#cfg-${f.key}`);
@@ -302,20 +351,26 @@ function screenConfig(game) {
       if (f.type !== 'select') v = Math.max(f.min, Math.min(f.max, isNaN(v) ? f.default : v));
       cfg[f.key] = v;
     });
-    launchGame(game.id, cfg);
+    // Mantiene el orden de registro
+    const participants = allPlayers.filter(p => selected.has(p.id));
+    launchGame(game.id, cfg, participants);
   };
 }
 
 /* =====================================================================
    Lanzar un juego
    ===================================================================== */
-function launchGame(gameId, cfg) {
+function launchGame(gameId, cfg, participants) {
   const game = gameById(gameId);
   if (!game) return screenMenu();
   clearGame();
+  // Valida que los participantes sigan existiendo (por si se editaron jugadores)
+  const validIds = new Set(getPlayers().map(p => p.id));
+  let players = (participants && participants.length ? participants : getPlayers()).filter(p => validIds.has(p.id));
+  if (!players.length) players = getPlayers();
   lastGameId = gameId;
   lastConfig = cfg;
-  const players = getPlayers();
+  lastPlayers = players;
   currentTeardown = game.start(app(), players, cfg, api) || null;
 }
 
@@ -382,6 +437,10 @@ document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action], [data-game]');
   if (!el) return;
 
+  // Red de seguridad: elimina cualquier ventana emergente que haya quedado
+  // pegada (paneles con data-overlay) antes de navegar de pantalla.
+  document.querySelectorAll('[data-overlay]').forEach(n => n.remove());
+
   const game = el.getAttribute('data-game');
   if (game) { screenConfig(gameById(game)); return; }
 
@@ -391,7 +450,7 @@ document.addEventListener('click', (e) => {
     case 'players':    screenHome(); break;
     case 'scoreboard': screenScoreboard(); break;
     case 'replay':
-      if (lastGameId && lastConfig) launchGame(lastGameId, lastConfig);
+      if (lastGameId && lastConfig) launchGame(lastGameId, lastConfig, lastPlayers);
       else screenMenu();
       break;
   }

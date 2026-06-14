@@ -15,6 +15,10 @@ Altamente animado, moderno y responsivo. **Sin build step**: solo HTML + ES Modu
 | **Charadas y Mímicas** | 🎭 | Actúa **palabras por tema** (animales, profesiones, comida…) sin hablar. La dificultad se ajusta a la edad del actor. Botones gigantes **¡Adivinó!** / **Pasar**. |
 | **Crucigrama Familiar** | 🧩 | Cooperativo. Cuadrícula **generada automáticamente** con pistas (¡varias con emoji-imagen!). Revelar-letra como ayuda. |
 | **¡Adivínalo!** | 🔍 | Una **imagen (emoji) se revela por mosaicos** poco a poco. Adivina antes de que se descubra: mientras menos pistas, más puntos. Dificultad por edad. |
+| **¿Qué Dibujo?** | 🎨 | El sistema **dibuja trazo por trazo** (figuras en SVG animado). Adivina antes de que termine: menos trazos, más puntos. Dificultad por edad. |
+| **Película en Emojis** | 🎬 | Adivina el título de la peli por sus emojis. Opción múltiple A-D, por edad (infantiles, famosas y clásicos). |
+| **Respuesta Incorrecta** | ❌ | Tipo Stop, ¡al revés! Responde la pregunta con un **disparate**. Pierde vida quien responda **bien** (botón manual) o se quede sin tiempo. |
+| **¿Coincidimos?** | 🤝 | 2 jugadores al azar escriben **en secreto** una palabra para un tema. El objetivo (coincidir / NO coincidir) es **al azar** cada ronda. |
 
 Cada modo tiene un **banco de datos con 50+ elementos**. La clasificación por edad usa **🧒 Niña (8) = fácil**, **🧑 Joven (14+) = medio (incluye mates)**, **🧔 Adulto = difícil**.
 
@@ -25,6 +29,7 @@ Cada modo tiene un **banco de datos con 50+ elementos**. La clasificación por e
 - 🧑‍🤝‍🧑 Registro de hasta **5 jugadores** con avatares divertidos.
 - 🏅 **Tablero de puntuación global persistente** (se guarda en el navegador con `localStorage`).
 - ⚙️ **Configuración por partida**: tiempo de turno, número de rondas/vueltas, vidas y puntos.
+- 🎯 **Participantes por juego**: al entrar a cada modo eliges **cuáles de los jugadores registrados juegan** esa partida (toca para incluir/excluir).
 - 🎊 **Confeti** a pantalla completa al ganar (vía `canvas-confetti`).
 - ⏱️ Temporizadores que **parpadean en rojo** cuando quedan ≤ 5 segundos.
 - 🔊 Efectos de sonido generados con **Web Audio** (sin archivos externos).

@@ -167,6 +167,7 @@ export const ahorcadoGame = {
       function endPanel(won, pts) {
         if (teardownKey) teardownKey();
         const panel = document.createElement('div');
+        panel.setAttribute('data-overlay', '');
         panel.className = 'fixed inset-0 z-40 bg-slate-900/80 backdrop-blur flex items-center justify-center p-6 animate-pop-in';
         panel.innerHTML = `
           <div class="card p-8 text-center max-w-lg">

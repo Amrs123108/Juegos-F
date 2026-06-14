@@ -346,6 +346,7 @@ export const crucigramaGame = {
       api.logGame(crucigramaGame.name, `Resuelto (${placed.length} palabras)`);
       sfx.win(); confettiBig(3000);
       const panel = document.createElement('div');
+      panel.setAttribute('data-overlay', '');
       panel.className = 'fixed inset-0 z-40 bg-slate-900/85 backdrop-blur flex items-center justify-center p-6 animate-pop-in';
       panel.innerHTML = `
         <div class="card p-8 text-center max-w-lg">
@@ -358,7 +359,7 @@ export const crucigramaGame = {
             <button data-action="home" class="btn-press px-6 py-3 rounded-2xl bg-slate-800 font-bold">🏠 Menú</button>
           </div>
         </div>`;
-      document.body.appendChild(panel);
+      root.appendChild(panel);
     }
 
     function surrender() {
@@ -367,6 +368,7 @@ export const crucigramaGame = {
       solvedDone = true;
       sfx.buzz();
       const panel = document.createElement('div');
+      panel.setAttribute('data-overlay', '');
       panel.className = 'fixed inset-0 z-40 bg-slate-900/85 backdrop-blur flex items-center justify-center p-6 animate-pop-in';
       panel.innerHTML = `
         <div class="card p-8 text-center max-w-lg">
@@ -378,7 +380,7 @@ export const crucigramaGame = {
             <button data-action="home" class="btn-press px-6 py-3 rounded-2xl bg-slate-800 font-bold">🏠 Menú</button>
           </div>
         </div>`;
-      document.body.appendChild(panel);
+      root.appendChild(panel);
     }
 
     return () => {}; // sin timers globales que limpiar
