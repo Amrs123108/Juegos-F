@@ -1,0 +1,13 @@
+{
+  "name": "panama-family-party-game",
+  "version": "1.0.0",
+  "description": "Juego de fiesta familiar para la TV de la sala, con sabor 100% panameño. Sin build step: HTML + ES Modules + Tailwind (CDN).",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "keywords": ["panama", "party-game", "family", "trivia", "ahorcado", "charadas", "stop"],
+  "license": "MIT"
+}
