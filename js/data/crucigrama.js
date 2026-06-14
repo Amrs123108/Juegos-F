@@ -1,13 +1,13 @@
 /* ===========================================================
    data/crucigrama.js — Banco de palabras para "Crucigrama"
    El generador arma una cuadrícula conectada a partir de estas
-   palabras. Palabras en MAYÚSCULAS, sin espacios ni acentos.
+   palabras. MAYÚSCULAS, sin espacios ni acentos.
    { word, clue, emoji?, nivel }  nivel: 'facil' | 'media' | 'dificil'
    Las 'facil' (con emoji) ayudan a la niña de 8.
    =========================================================== */
 
 export const CRUCIGRAMA = [
-  // Fáciles (con emoji-imagen de apoyo) — aptas para niños
+  /* ---------------- FÁCILES (con emoji de apoyo) ---------------- */
   { word: 'GATO', clue: 'Animal que dice "miau"', emoji: '🐱', nivel: 'facil' },
   { word: 'PERRO', clue: 'El mejor amigo del hombre, ladra', emoji: '🐶', nivel: 'facil' },
   { word: 'SOL', clue: 'Brilla en el cielo de día', emoji: '☀️', nivel: 'facil' },
@@ -26,8 +26,30 @@ export const CRUCIGRAMA = [
   { word: 'NUBE', clue: 'Blanca y flota en el cielo', emoji: '☁️', nivel: 'facil' },
   { word: 'ROSA', clue: 'Flor con espinas', emoji: '🌹', nivel: 'facil' },
   { word: 'PIE', clue: 'Parte del cuerpo para caminar', emoji: '🦶', nivel: 'facil' },
+  { word: 'UVA', clue: 'Fruta pequeña que da en racimo', emoji: '🍇', nivel: 'facil' },
+  { word: 'PERA', clue: 'Fruta verde con forma de gota', emoji: '🍐', nivel: 'facil' },
+  { word: 'VACA', clue: 'Da leche y hace "muu"', emoji: '🐮', nivel: 'facil' },
+  { word: 'POLLO', clue: 'Ave de granja, de pequeño es pollito', emoji: '🐔', nivel: 'facil' },
+  { word: 'HUEVO', clue: 'Lo pone la gallina', emoji: '🥚', nivel: 'facil' },
+  { word: 'QUESO', clue: 'A los ratones les encanta', emoji: '🧀', nivel: 'facil' },
+  { word: 'LECHE', clue: 'Bebida blanca de la vaca', emoji: '🥛', nivel: 'facil' },
+  { word: 'SILLA', clue: 'Sirve para sentarse', emoji: '🪑', nivel: 'facil' },
+  { word: 'LIBRO', clue: 'Tiene páginas para leer', emoji: '📚', nivel: 'facil' },
+  { word: 'LAPIZ', clue: 'Sirve para escribir', emoji: '✏️', nivel: 'facil' },
+  { word: 'CARRO', clue: 'Vehículo de cuatro ruedas', emoji: '🚗', nivel: 'facil' },
+  { word: 'BARCO', clue: 'Navega por el mar', emoji: '⛵', nivel: 'facil' },
+  { word: 'AVION', clue: 'Vuela por el cielo con alas', emoji: '✈️', nivel: 'facil' },
+  { word: 'GLOBO', clue: 'Se infla en las fiestas', emoji: '🎈', nivel: 'facil' },
+  { word: 'TORTA', clue: 'Dulce de cumpleaños', emoji: '🎂', nivel: 'facil' },
+  { word: 'PIZZA', clue: 'Comida redonda con queso', emoji: '🍕', nivel: 'facil' },
+  { word: 'ARBOL', clue: 'Planta grande con tronco y hojas', emoji: '🌳', nivel: 'facil' },
+  { word: 'AGUA', clue: 'Líquido que tomamos para vivir', emoji: '💧', nivel: 'facil' },
+  { word: 'FUEGO', clue: 'Quema y es caliente', emoji: '🔥', nivel: 'facil' },
+  { word: 'CAMA', clue: 'Mueble donde dormimos', emoji: '🛏️', nivel: 'facil' },
+  { word: 'ABEJA', clue: 'Insecto que hace miel', emoji: '🐝', nivel: 'facil' },
+  { word: 'TREN', clue: 'Vehículo que va por rieles', emoji: '🚂', nivel: 'facil' },
 
-  // Medias
+  /* ---------------- MEDIAS ---------------- */
   { word: 'ESCUELA', clue: 'Lugar donde estudias', nivel: 'media' },
   { word: 'MAESTRO', clue: 'Persona que enseña en clase', nivel: 'media' },
   { word: 'COCINA', clue: 'Cuarto donde se prepara la comida', nivel: 'media' },
@@ -43,8 +65,28 @@ export const CRUCIGRAMA = [
   { word: 'PLAYA', clue: 'Arena junto al mar', nivel: 'media' },
   { word: 'RELOJ', clue: 'Marca la hora', nivel: 'media' },
   { word: 'LLAVE', clue: 'Sirve para abrir la puerta', nivel: 'media' },
+  { word: 'JIRAFA', clue: 'Animal de cuello muy largo', nivel: 'media' },
+  { word: 'CABALLO', clue: 'Animal que se monta y relincha', nivel: 'media' },
+  { word: 'GALLINA', clue: 'Ave que pone huevos', nivel: 'media' },
+  { word: 'SOMBRERO', clue: 'Se pone en la cabeza para el sol', nivel: 'media' },
+  { word: 'TELEFONO', clue: 'Sirve para llamar y hablar', nivel: 'media' },
+  { word: 'GUITARRA', clue: 'Instrumento de cuerdas', nivel: 'media' },
+  { word: 'FAMILIA', clue: 'Papá, mamá e hijos', nivel: 'media' },
+  { word: 'VERANO', clue: 'Estación más calurosa del año', nivel: 'media' },
+  { word: 'DOMINGO', clue: 'Último día de la semana', nivel: 'media' },
+  { word: 'CIUDAD', clue: 'Lugar grande con muchos edificios', nivel: 'media' },
+  { word: 'IGLESIA', clue: 'Lugar para rezar', nivel: 'media' },
+  { word: 'MERCADO', clue: 'Donde compras frutas y verduras', nivel: 'media' },
+  { word: 'PARQUE', clue: 'Lugar con árboles para jugar', nivel: 'media' },
+  { word: 'BOSQUE', clue: 'Lugar con muchos árboles', nivel: 'media' },
+  { word: 'PUENTE', clue: 'Cruza un río o una carretera', nivel: 'media' },
+  { word: 'CASTILLO', clue: 'Casa grande de reyes', nivel: 'media' },
+  { word: 'DOCTOR', clue: 'Cura a los enfermos', nivel: 'media' },
+  { word: 'BOMBERO', clue: 'Apaga incendios', nivel: 'media' },
+  { word: 'COCINERO', clue: 'Prepara la comida en un restaurante', nivel: 'media' },
+  { word: 'PINTOR', clue: 'Hace cuadros con pinceles', nivel: 'media' },
 
-  // Difíciles (Panamá / cultura)
+  /* ---------------- DIFÍCILES (Panamá / cultura general) ---------------- */
   { word: 'POLLERA', clue: 'Traje típico femenino de Panamá', nivel: 'dificil' },
   { word: 'TAMBORITO', clue: 'Baile folclórico panameño', nivel: 'dificil' },
   { word: 'BALBOA', clue: 'Moneda panameña y un explorador', nivel: 'dificil' },
@@ -55,6 +97,22 @@ export const CRUCIGRAMA = [
   { word: 'CARNAVAL', clue: 'Fiesta grande de Las Tablas', nivel: 'dificil' },
   { word: 'HOJALDRA', clue: 'Masa frita del desayuno panameño', nivel: 'dificil' },
   { word: 'PATACON', clue: 'Plátano verde frito y aplastado', nivel: 'dificil' },
+  { word: 'SANCOCHO', clue: 'Sopa de gallina que cura todo', nivel: 'dificil' },
+  { word: 'CEVICHE', clue: 'Pescado curado en limón', nivel: 'dificil' },
+  { word: 'MARIPOSA', clue: 'Insecto colorido que vuela', nivel: 'dificil' },
+  { word: 'ELEFANTE', clue: 'Animal enorme con trompa', nivel: 'dificil' },
+  { word: 'BIBLIOTECA', clue: 'Lugar lleno de libros para leer', nivel: 'dificil' },
+  { word: 'UNIVERSIDAD', clue: 'Donde se estudia una carrera', nivel: 'dificil' },
+  { word: 'ARQUITECTO', clue: 'Diseña casas y edificios', nivel: 'dificil' },
+  { word: 'INGENIERO', clue: 'Construye obras y máquinas', nivel: 'dificil' },
+  { word: 'VETERINARIO', clue: 'Doctor de los animales', nivel: 'dificil' },
+  { word: 'GEOGRAFIA', clue: 'Ciencia de los países y mapas', nivel: 'dificil' },
+  { word: 'PRESIDENTE', clue: 'Gobierna un país', nivel: 'dificil' },
+  { word: 'MONUMENTO', clue: 'Estatua o construcción histórica', nivel: 'dificil' },
+  { word: 'PENINSULA', clue: 'Tierra rodeada de agua por tres lados', nivel: 'dificil' },
+  { word: 'AMAZONAS', clue: 'Río más grande de Sudamérica', nivel: 'dificil' },
+  { word: 'ORQUIDEA', clue: 'Flor nacional, muy elegante', nivel: 'dificil' },
+  { word: 'CORDILLERA', clue: 'Cadena de montañas', nivel: 'dificil' },
 ];
 
 export const CRUCIGRAMA_CONFIG = {
@@ -62,5 +120,13 @@ export const CRUCIGRAMA_CONFIG = {
   name: 'Crucigrama Familiar',
   emoji: '🧩',
   color: 'cyan',
-  short: 'Toda la familia llena la cuadrícula con pistas (¡algunas con imagen!).',
+  short: 'Cuadrícula con pistas (¡varias con imagen!). Elige dificultad y tamaño.',
+};
+
+// Niveles de dificultad -> qué palabras entran en el generador
+export const CRUCIGRAMA_NIVELES = {
+  facil:   { label: 'Fácil 🟢',   levels: ['facil'],               penal: 15 },
+  media:   { label: 'Medio 🟡',   levels: ['facil', 'media'],      penal: 25 },
+  dificil: { label: 'Difícil 🔴', levels: ['media', 'dificil'],    penal: 35 },
+  mixto:   { label: 'Mixto 🌈',   levels: ['facil', 'media', 'dificil'], penal: 25 },
 };

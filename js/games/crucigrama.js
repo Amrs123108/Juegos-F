@@ -3,7 +3,7 @@
    Genera una cuadrícula conectada a partir del banco de palabras,
    con pistas (varias con emoji-imagen). Toda la familia la resuelve.
    =========================================================== */
-import { CRUCIGRAMA, CRUCIGRAMA_CONFIG } from '../data/crucigrama.js';
+import { CRUCIGRAMA, CRUCIGRAMA_CONFIG, CRUCIGRAMA_NIVELES } from '../data/crucigrama.js';
 import { $, $$, esc, shuffle, confettiBig, confettiBurst, sfx, toast, backBtn } from '../ui.js';
 
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-ZÑ]/g, '');
@@ -112,18 +112,26 @@ function buildCrossword(pool, target) {
 export const crucigramaGame = {
   ...CRUCIGRAMA_CONFIG,
   config: [
-    { key: 'words', label: 'Cantidad de palabras', type: 'number', min: 5, max: 12, step: 1, default: 8 },
+    { key: 'nivel', label: 'Dificultad', type: 'select', default: 'media',
+      options: Object.entries(CRUCIGRAMA_NIVELES).map(([v, n]) => ({ value: v, label: n.label })) },
+    { key: 'words', label: 'Tamaño (cantidad de palabras)', type: 'number', min: 6, max: 20, step: 1, default: 12 },
   ],
 
   start(root, players, cfg, api) {
-    const puzzle = buildCrossword(CRUCIGRAMA, cfg.words);
+    const niv = CRUCIGRAMA_NIVELES[cfg.nivel] || CRUCIGRAMA_NIVELES.media;
+    const PENAL = niv.penal;
+    const pool = CRUCIGRAMA.filter(w => niv.levels.includes(w.nivel));
+    const puzzle = buildCrossword(pool, cfg.words);
     const { placed, rows, cols, sol } = puzzle;
+    const basePts = 100 + placed.length * 15; // grillas más grandes valen más
     const inputs = new Map();   // "r,c" -> input
     let activeWord = null;
     let activeDir = 'H';
     let focusedKey = null;
     let hintsUsed = 0;
     let solvedDone = false;
+
+    const potential = () => Math.max(50, basePts - hintsUsed * PENAL);
 
     const across = placed.filter(p => p.dir === 'H').sort((a, b) => a.num - b.num);
     const down = placed.filter(p => p.dir === 'V').sort((a, b) => a.num - b.num);
@@ -137,7 +145,7 @@ export const crucigramaGame = {
         <div class="max-w-6xl mx-auto pt-14">
           <div class="text-center mb-4">
             <h1 class="text-3xl md:text-4xl font-display font-extrabold text-cyan-400">🧩 Crucigrama Familiar</h1>
-            <p class="text-slate-400 text-sm">Toca una pista, escribe en la cuadrícula. ¡Resuélvanlo en equipo!</p>
+            <p class="text-slate-400 text-sm">Dificultad <b class="text-cyan-300">${esc(niv.label)}</b> · ${placed.length} palabras · Toca una pista y escribe. ¡En equipo!</p>
           </div>
 
           <div class="grid lg:grid-cols-[auto,1fr] gap-6 items-start">
@@ -146,10 +154,10 @@ export const crucigramaGame = {
               <div id="cw-grid" class="grid gap-0.5" style="grid-template-columns:repeat(${cols}, max-content)"></div>
               <div class="flex flex-wrap gap-2 mt-4 justify-center">
                 <button data-check class="btn-press px-5 py-3 rounded-xl bg-emerald-500 text-white font-extrabold">✅ Revisar</button>
-                <button data-hint class="btn-press px-5 py-3 rounded-xl bg-cyan-500 text-slate-900 font-extrabold">💡 Pista (revelar letra)</button>
+                <button data-hint class="btn-press px-5 py-3 rounded-xl bg-cyan-500 text-slate-900 font-extrabold">💡 Pista (−${PENAL} pts)</button>
                 <button data-reveal class="btn-press px-5 py-3 rounded-xl bg-slate-700 text-white font-bold">🙈 Rendirse</button>
               </div>
-              <p class="text-center text-slate-500 text-xs mt-2">Pistas usadas: <span id="cw-hints">0</span></p>
+              <p class="text-center text-slate-400 text-sm mt-2">🏆 Puntos posibles: <b id="cw-pts" class="text-cyan-300">${basePts}</b> · Pistas usadas: <span id="cw-hints">0</span> <span class="text-slate-500">(−${PENAL} c/u)</span></p>
             </div>
 
             <!-- Pistas -->
@@ -308,6 +316,7 @@ export const crucigramaGame = {
       inp.style.background = 'rgba(16,185,129,0.35)';
       hintsUsed++;
       $('#cw-hints').textContent = hintsUsed;
+      const ptsEl = $('#cw-pts'); if (ptsEl) ptsEl.textContent = potential();
       sfx.tick();
       checkWin();
     }
@@ -341,7 +350,7 @@ export const crucigramaGame = {
 
     function win() {
       solvedDone = true;
-      const pts = Math.max(60, 200 - hintsUsed * 20);
+      const pts = potential();
       players.forEach(p => api.addPoints(p.id, pts));
       api.logGame(crucigramaGame.name, `Resuelto (${placed.length} palabras)`);
       sfx.win(); confettiBig(3000);

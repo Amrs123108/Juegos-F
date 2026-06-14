@@ -13,7 +13,7 @@ Altamente animado, moderno y responsivo. **Sin build step**: solo HTML + ES Modu
 | **Ahorcado Cooperativo** | 💀 | Toda la familia contra la máquina. Frases panameñas, **3 niveles de pistas** y 6 errores antes de dibujar el ahorcado (animado en CSS). |
 | **Trivia del Patio** | 🧠 | Opción múltiple A–D. Preguntas **filtradas por edad** (Niña 8 / Joven 14+ / Adulto): Disney para todos, **matemáticas 14+**, pelis famosas, Canal, música nacional, hogar/cocina y más. |
 | **Charadas y Mímicas** | 🎭 | Actúa **palabras por tema** (animales, profesiones, comida…) sin hablar. La dificultad se ajusta a la edad del actor. Botones gigantes **¡Adivinó!** / **Pasar**. |
-| **Crucigrama Familiar** | 🧩 | Cooperativo. Cuadrícula **generada automáticamente** con pistas (¡varias con emoji-imagen!). Revelar-letra como ayuda. |
+| **Crucigrama Familiar** | 🧩 | Cooperativo. Cuadrícula **generada automáticamente** con **selector de dificultad** (Fácil/Medio/Difícil/Mixto) y **tamaño** (6–20 palabras). Pistas con emoji; **revelar-letra penaliza puntos** (escalado por dificultad). |
 | **¡Adivínalo!** | 🔍 | Una **imagen (emoji) se revela por mosaicos** poco a poco. Adivina antes de que se descubra: mientras menos pistas, más puntos. Dificultad por edad. |
 | **¿Qué Dibujo?** | 🎨 | El sistema **dibuja trazo por trazo** (figuras en SVG animado). Adivina antes de que termine: menos trazos, más puntos. Dificultad por edad. |
 | **Película en Emojis** | 🎬 | Adivina el título de la peli por sus emojis. Opción múltiple A-D, por edad (infantiles, famosas y clásicos). |
@@ -24,8 +24,8 @@ Altamente animado, moderno y responsivo. **Sin build step**: solo HTML + ES Modu
 | **Dibuja y Adivina** | ✏️ | **Pictionary con papel y lápiz real**: la app solo da la palabra. Modos **Individual** y **Equipos** (Azul vs Rojo). El dibujante elige categoría. |
 | **Conexión Total** | 🤜🤛 | 2 jugadores: **Fase MENTE** (piensan igual) + **Fase ACCIÓN** (gesto sincronizado). Ganan si coinciden en ambas. |
 
-### 🏆 Noche Familiar (meta-modo, desde el Tablero)
-Un torneo de la noche: una **ruleta** elige al azar el juego donde compiten todos (con un **comodín 🃏** para elegir). El **1.º se lleva el premio** de ese juego. Dos modalidades: **llegar a N premios** (en cualquier juego) o **conseguir 1 de cada juego**. El primero en cumplir es el **👑 Campeón de la Noche Familiar**. *(La ruleta excluye Crucigrama y Ahorcado por ser cooperativos sin ganador único.)*
+### 🏆 Noche Familiar (meta-modo, desde el **menú principal** o el Tablero)
+Un torneo de la noche: una **ruleta** elige al azar el juego donde compiten todos (con un **comodín 🃏** para elegir). El **1.º se lleva el premio** de ese juego. Antes de empezar **eliges con cuáles juegos** se juega, los participantes y la modalidad: **llegar a N premios** o **conseguir 1 de cada juego elegido**. El primero en cumplir es el **👑 Campeón de la Noche Familiar**. *(La ruleta excluye Crucigrama y Ahorcado por ser cooperativos sin ganador único.)*
 
 Cada modo tiene un **banco de datos con 50+ elementos**. La clasificación por edad usa **🧒 Niña (8) = fácil**, **🧑 Joven (14+) = medio (incluye mates)**, **🧔 Adulto = difícil**.
 

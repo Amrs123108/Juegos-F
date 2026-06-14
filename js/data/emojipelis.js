@@ -61,6 +61,26 @@ export const EMOJIPELIS = [
   { emojis: '🐝🎬🎥', answer: 'La La Land', age: 'adulto' },
   { emojis: '🃏🎭🔫', answer: 'Guasón (Joker)', age: 'adulto' },
   { emojis: '🚙🦕🧬', answer: 'Jurassic Park', age: 'adulto' },
+
+  /* ---- Ampliación ---- */
+  { emojis: '🤖🌱❤️', answer: 'WALL-E', age: 'nina' },
+  { emojis: '🧞✨🪔', answer: 'Aladdín', age: 'nina' },
+  { emojis: '🐶🐶🔢🟦⬜', answer: '101 Dálmatas', age: 'nina' },
+  { emojis: '🐰🦊🚓', answer: 'Zootopia', age: 'nina' },
+  { emojis: '🏹👧🐻🏰', answer: 'Valiente', age: 'nina' },
+  { emojis: '⚔️👧🐉🇨🇳', answer: 'Mulán', age: 'nina' },
+  { emojis: '💪🏛️⚡🐴', answer: 'Hércules', age: 'nina' },
+  { emojis: '🧚⏰🐊🏴‍☠️', answer: 'Peter Pan', age: 'nina' },
+  { emojis: '🦍👦🌴🐆', answer: 'Tarzán', age: 'nina' },
+  { emojis: '🛡️🦸‍♂️🇺🇸', answer: 'Capitán América', age: 'ado' },
+  { emojis: '🔴🤖🦾', answer: 'Iron Man', age: 'ado' },
+  { emojis: '🐆🦸🌍', answer: 'Pantera Negra', age: 'ado' },
+  { emojis: '🔨⚡👱‍♂️', answer: 'Thor', age: 'ado' },
+  { emojis: '🦈🌪️', answer: 'Sharknado', age: 'ado' },
+  { emojis: '👨‍🚀🌌🪐⏳', answer: 'Interestelar', age: 'adulto' },
+  { emojis: '🧛🦇🌙🏰', answer: 'Drácula', age: 'adulto' },
+  { emojis: '👩‍🚀🌍🛰️', answer: 'Gravedad', age: 'adulto' },
+  { emojis: '👻🏚️😱🕯️', answer: 'El Conjuro', age: 'adulto' },
 ];
 
 export const EMOJIPELIS_CONFIG = {

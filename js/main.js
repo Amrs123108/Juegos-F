@@ -273,7 +273,17 @@ function screenMenu() {
         }).join('')}
       </div>
 
-      <p class="text-center text-slate-600 text-sm mt-10">Hecho para la TV de la sala 📺 · Conecta el laptop al televisor y ¡a jugar en familia!</p>
+      <div class="max-w-5xl mx-auto mt-6">
+        <button data-action="noche" class="btn-press w-full p-6 rounded-2xl text-left bg-gradient-to-r from-amber-500/20 to-rose-500/20 ring-2 ring-amber-400 shadow-xl shadow-amber-500/20 flex items-center gap-4">
+          <div class="text-5xl">🏆</div>
+          <div>
+            <h3 class="text-2xl font-display font-extrabold text-amber-300">Noche Familiar</h3>
+            <p class="text-slate-300 text-sm mt-1">Torneo con ruleta y premios: gana juegos para ser el Campeón de la Noche 👑</p>
+          </div>
+        </button>
+      </div>
+
+      <p class="text-center text-slate-600 text-sm mt-8">Hecho para la TV de la sala 📺 · Conecta el laptop al televisor y ¡a jugar en familia!</p>
     </div>
   `);
 }
@@ -608,6 +618,12 @@ function screenScoreboard() {
 // Juegos elegibles en la ruleta (se excluyen los cooperativos sin ganador único)
 const NOCHE_EXCLUDE = ['crucigrama', 'ahorcado'];
 const tournamentGames = () => GAMES.filter(g => !NOCHE_EXCLUDE.includes(g.id));
+// Juegos elegidos para la Noche Familiar en curso (subconjunto)
+function tournamentPool() {
+  const ids = (tournament && tournament.gameIds && tournament.gameIds.length)
+    ? tournament.gameIds : tournamentGames().map(g => g.id);
+  return ids.map(id => gameById(id)).filter(Boolean);
+}
 
 function defaultCfg(game) {
   const cfg = {};
@@ -617,19 +633,23 @@ function defaultCfg(game) {
 
 function screenNocheSetup() {
   clearGame();
+  tournament = null;
   const all = getPlayers();
-  if (all.length < 2) { toast('Necesitas al menos 2 jugadores', 'warn'); return screenScoreboard(); }
+  if (all.length < 2) { toast('Necesitas al menos 2 jugadores', 'warn'); return screenMenu(); }
+  const eligible = tournamentGames();
   const selected = new Set(all.map(p => p.id));
+  const selGames = new Set(eligible.map(g => g.id));
   let mode = 'count';
   let target = 3;
   const chipCls = (on) => `btn-press px-3 py-2 rounded-xl border-2 text-sm font-bold flex items-center gap-1.5 ${on ? 'bg-amber-500 border-amber-300 text-slate-900' : 'bg-slate-800/60 border-slate-700 opacity-55'}`;
+  const gameChipCls = (on) => `btn-press px-3 py-2 rounded-xl border-2 text-sm font-bold flex items-center gap-1.5 ${on ? 'bg-cyan-600 border-cyan-300' : 'bg-slate-800/60 border-slate-700 opacity-55'}`;
   const modeCls = (on) => `btn-press flex-1 px-4 py-4 rounded-2xl border-2 font-bold ${on ? 'bg-amber-500 border-amber-300 text-slate-900' : 'bg-slate-800/60 border-slate-700'}`;
 
   function render() {
-    const totalGames = tournamentGames().length;
+    const nGames = selGames.size;
     app().innerHTML = `
       <div class="min-h-screen p-4 md:p-8 relative">
-        <button data-action="scoreboard" class="btn-press absolute top-5 left-5 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-600 text-sm font-bold">← Tablero</button>
+        <button data-action="home" class="btn-press absolute top-5 left-5 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-600 text-sm font-bold">← Menú</button>
         <div class="max-w-2xl mx-auto pt-16">
           <h1 class="text-4xl md:text-5xl font-display font-extrabold text-center mb-1"><span class="text-amber-400">🏆 Noche</span> <span class="text-rose-400">Familiar</span></h1>
           <p class="text-center text-slate-300 mb-6">Una ruleta elige el juego; el 1.º se lleva el premio. ¡A ser el Campeón!</p>
@@ -637,8 +657,8 @@ function screenNocheSetup() {
           <div class="card p-5 mb-4">
             <p class="font-bold mb-2">Modalidad</p>
             <div class="flex gap-3">
-              <button data-mode="count" class="${modeCls(mode === 'count')}">🎯 Llegar a N premios<span class="block text-xs font-normal opacity-80">en cualquier juego</span></button>
-              <button data-mode="each" class="${modeCls(mode === 'each')}">🧩 1 de cada juego<span class="block text-xs font-normal opacity-80">completarlos todos (${totalGames})</span></button>
+              <button data-mode="count" class="${modeCls(mode === 'count')}">🎯 Llegar a N premios<span class="block text-xs font-normal opacity-80">en los juegos elegidos</span></button>
+              <button data-mode="each" class="${modeCls(mode === 'each')}">🧩 1 de cada juego<span class="block text-xs font-normal opacity-80">completar los ${nGames} elegidos</span></button>
             </div>
             ${mode === 'count' ? `
               <div class="flex items-center justify-center gap-3 mt-4">
@@ -646,7 +666,16 @@ function screenNocheSetup() {
                 <button data-t="-1" class="btn-press w-10 h-10 rounded-xl bg-slate-700 text-2xl font-extrabold">−</button>
                 <span id="tval" class="text-3xl font-display font-extrabold w-10 text-center">${target}</span>
                 <button data-t="1" class="btn-press w-10 h-10 rounded-xl bg-slate-700 text-2xl font-extrabold">+</button>
-              </div>` : `<p class="text-center text-slate-400 text-sm mt-3">Gana quien primero consiga un premio de los ${totalGames} juegos.</p>`}
+              </div>` : `<p class="text-center text-slate-400 text-sm mt-3">Gana quien primero consiga un premio de los ${nGames} juegos elegidos.</p>`}
+          </div>
+
+          <div class="card p-5 mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <p class="font-bold">¿Con cuáles juegos?</p>
+              <span class="text-sm text-slate-400"><span id="gCount">${nGames}</span>/${eligible.length}</span>
+            </div>
+            <div id="ng" class="flex flex-wrap gap-2"></div>
+            <p class="text-xs text-slate-500 mt-2">La ruleta solo elegirá entre estos. (Crucigrama y Ahorcado no aplican.)</p>
           </div>
 
           <div class="card p-5 mb-6">
@@ -664,6 +693,14 @@ function screenNocheSetup() {
       if (selected.has(id)) selected.delete(id); else selected.add(id);
       b.className = chipCls(selected.has(id)); sfx.tick();
     });
+    $('#ng').innerHTML = eligible.map(g => `<button data-gtog="${g.id}" class="${gameChipCls(selGames.has(g.id))}"><span class="text-xl">${g.emoji}</span> ${esc(g.name)}</button>`).join('');
+    $$('[data-gtog]').forEach(b => b.onclick = () => {
+      const id = b.getAttribute('data-gtog');
+      if (selGames.has(id)) selGames.delete(id); else selGames.add(id);
+      b.className = gameChipCls(selGames.has(id));
+      $('#gCount').textContent = selGames.size;
+      sfx.tick();
+    });
     $$('[data-mode]').forEach(b => b.onclick = () => { mode = b.getAttribute('data-mode'); render(); sfx.tick(); });
     $$('[data-t]').forEach(b => b.onclick = () => {
       target = Math.max(1, Math.min(15, target + Number(b.getAttribute('data-t'))));
@@ -672,7 +709,10 @@ function screenNocheSetup() {
     $('#startNoche').onclick = () => {
       const participants = all.filter(p => selected.has(p.id));
       if (participants.length < 2) { toast('Selecciona al menos 2 jugadores', 'warn'); return; }
-      tournament = { participants, mode, target, prizes: {} };
+      const gameIds = eligible.map(g => g.id).filter(id => selGames.has(id));
+      if (gameIds.length < 1) { toast('Elige al menos 1 juego', 'warn'); return; }
+      if (mode === 'each' && gameIds.length < 2) { toast('Para "1 de cada" elige al menos 2 juegos', 'warn'); return; }
+      tournament = { participants, mode, target, prizes: {}, gameIds };
       participants.forEach(p => tournament.prizes[p.id] = []);
       confettiBurst(); screenNocheStandings();
     };
@@ -685,7 +725,7 @@ function uniquePrizes(pid) { return new Set(tournament.prizes[pid] || []); }
 function isChampion(pid) {
   if (!tournament) return false;
   if (tournament.mode === 'count') return prizeCount(pid) >= tournament.target;
-  const need = tournamentGames().map(g => g.id);
+  const need = tournamentPool().map(g => g.id);
   const have = uniquePrizes(pid);
   return need.every(id => have.has(id));
 }
@@ -694,7 +734,7 @@ function screenNocheStandings() {
   clearGame();
   if (!tournament) return screenScoreboard();
   const t = tournament;
-  const totalGames = tournamentGames().length;
+  const totalGames = tournamentPool().length;
   const standings = [...t.participants].sort((a, b) => (t.mode === 'count'
     ? prizeCount(b.id) - prizeCount(a.id)
     : uniquePrizes(b.id).size - uniquePrizes(a.id).size));
@@ -732,7 +772,7 @@ function screenNocheStandings() {
 
 function ruletaSpin() {
   clearGame();
-  const games = tournamentGames();
+  const games = tournamentPool();
   const COMODIN = { id: '__comodin__', name: '¡Comodín! Elige tú', emoji: '🃏', color: 'violet' };
   const wheel = [...games, COMODIN];
   const result = wheel[Math.floor(Math.random() * wheel.length)];
@@ -785,7 +825,7 @@ function comodinPick() {
         <h1 class="text-3xl font-display font-extrabold text-violet-300 mb-1">¡Comodín!</h1>
         <p class="text-slate-300 mb-6">Elige el juego donde competirán todos:</p>
         <div class="grid grid-cols-2 gap-3">
-          ${tournamentGames().map(g => `<button data-pick="${g.id}" class="btn-press card p-4 text-left ring-1 ${(COLOR[g.color] || COLOR.violet).ring}">
+          ${tournamentPool().map(g => `<button data-pick="${g.id}" class="btn-press card p-4 text-left ring-1 ${(COLOR[g.color] || COLOR.violet).ring}">
             <div class="text-4xl">${g.emoji}</div><div class="font-display font-extrabold ${(COLOR[g.color] || COLOR.violet).text}">${esc(g.name)}</div></button>`).join('')}
         </div>
       </div>
@@ -825,7 +865,7 @@ function onTournamentGameDone(game, ranking) {
   sfx.win(); confettiBig(2500);
 
   const champ = isChampion(winner.id);
-  const goal = tournament.mode === 'count' ? tournament.target : tournamentGames().length;
+  const goal = tournament.mode === 'count' ? tournament.target : tournamentPool().length;
   const have = tournament.mode === 'count' ? prizeCount(winner.id) : uniquePrizes(winner.id).size;
 
   render(`
