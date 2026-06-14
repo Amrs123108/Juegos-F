@@ -6,6 +6,7 @@
    =========================================================== */
 import { PROMPTS, RESPINC_CONFIG } from '../data/respuestaincorrecta.js';
 import { $, esc, shuffle, makeTimer, paintTimer, confettiBig, sfx, toast, backBtn } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 export const respincorrectaGame = {
   ...RESPINC_CONFIG,
@@ -23,10 +24,8 @@ export const respincorrectaGame = {
     let placement = alive.length;
     const PLACEMENT_POINTS = { 1: 300, 2: 200, 3: 150, 4: 100, 5: 50 };
 
-    let deck = shuffle(PROMPTS), deckPos = 0;
     function nextPrompt() {
-      if (deckPos >= deck.length) { deck = shuffle(PROMPTS); deckPos = 0; }
-      return deck[deckPos++];
+      return drawNext('respinc', PROMPTS, p => p);
     }
 
     let els = {};
@@ -110,6 +109,7 @@ export const respincorrectaGame = {
       if (timer) timer.stop();
       api.addPoints(player.id, PLACEMENT_POINTS[1]);
       api.logGame(respincorrectaGame.name, `Ganó ${player.name}`);
+      if (api.result) { api.result([player]); return; }
       sfx.win(); confettiBig(3000);
       root.innerHTML = `
         <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">

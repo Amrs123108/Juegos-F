@@ -5,6 +5,7 @@
    =========================================================== */
 import { AHORCADO, AHORCADO_CONFIG } from '../data/ahorcado.js';
 import { $, $$, esc, shuffle, confettiBig, confettiBurst, sfx, toast, backBtn } from '../ui.js';
+import { drawMany } from '../memory.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
@@ -19,7 +20,8 @@ export const ahorcadoGame = {
 
   start(root, players, cfg, api) {
     const maxErrors = Math.min(cfg.maxErrors, 6);
-    let deck = shuffle(AHORCADO).slice(0, cfg.rounds);
+    // Palabras de la sesión sin repetir las ya vistas en la noche (ver memory.js)
+    let deck = drawMany('ahorcado', AHORCADO, cfg.rounds, a => a.answer);
     let roundIdx = 0;
     let solved = 0;
     let teamPointsTotal = 0;

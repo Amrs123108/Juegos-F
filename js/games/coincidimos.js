@@ -6,6 +6,7 @@
    =========================================================== */
 import { SEMILLAS, COINCIDIMOS_CONFIG } from '../data/coincidimos.js';
 import { $, esc, pick, shuffle, confettiBig, confettiBurst, sfx, toast, backBtn } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 // Normaliza para comparar: minúsculas, sin acentos, sin artículos, sin espacios extra
 function normAns(s) {
@@ -25,10 +26,8 @@ export const coincidimosGame = {
   start(root, players, cfg, api) {
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
     let teardownKey = null;
-    let seedQueue = shuffle(SEMILLAS), seedPos = 0;
     function nextSeed() {
-      if (seedPos >= seedQueue.length) { seedQueue = shuffle(SEMILLAS); seedPos = 0; }
-      return seedQueue[seedPos++];
+      return drawNext('coincidimos', SEMILLAS, s => s);
     }
 
     let roundIdx = 0;
@@ -136,6 +135,7 @@ export const coincidimosGame = {
       cleanupKey();
       api.logGame(coincidimosGame.name, `${cfg.rounds} rondas`);
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `

@@ -9,6 +9,7 @@ import {
   $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 const TILES = 16;       // cuadrícula 4x4
 const BASE_PTS = 50;
@@ -28,13 +29,9 @@ export const adivinaloGame = {
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
 
     // Colas por edad
-    const queues = {};
     function nextItemFor(band) {
-      if (!queues[band] || queues[band].pos >= queues[band].list.length) {
-        const list = shuffle(ADIVINALO.filter(a => a.age === band));
-        queues[band] = { list: list.length ? list : shuffle(ADIVINALO), pos: 0 };
-      }
-      return queues[band].list[queues[band].pos++];
+      const list = ADIVINALO.filter(a => a.age === band);
+      return drawNext('adivinalo:' + band, list.length ? list : ADIVINALO, x => x.answer);
     }
 
     ageAssignScreen(root, players, ageOf, {
@@ -170,6 +167,7 @@ export const adivinaloGame = {
       stopTimers();
       api.logGame(adivinaloGame.name, 'Ronda completada');
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `

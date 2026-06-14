@@ -6,7 +6,8 @@ import {
   AVATARS, getPlayers, setPlayers, getRanking, getScore,
   addScore, resetScores, fullReset, logGame,
 } from './state.js';
-import { app, render, $, $$, esc, confettiBurst, sfx, toast } from './ui.js';
+import { app, render, $, $$, esc, confettiBurst, confettiBig, sfx, toast } from './ui.js';
+import { syncFromCloud, resetSeen } from './memory.js';
 
 import { stopGame } from './games/stop.js';
 import { ahorcadoGame } from './games/ahorcado.js';
@@ -18,10 +19,15 @@ import { dibujoGame } from './games/dibujo.js';
 import { emojipelisGame } from './games/emojipelis.js';
 import { respincorrectaGame } from './games/respincorrecta.js';
 import { coincidimosGame } from './games/coincidimos.js';
+import { ordenaGame } from './games/ordena.js';
+import { hablaSinDecirGame } from './games/hablasindecir.js';
+import { dibujaAdivinaGame } from './games/dibujaadivina.js';
+import { conexionTotalGame } from './games/conexiontotal.js';
 
 const GAMES = [
   stopGame, ahorcadoGame, triviaGame, charadasGame, crucigramaGame, adivinaloGame,
   dibujoGame, emojipelisGame, respincorrectaGame, coincidimosGame,
+  ordenaGame, hablaSinDecirGame, dibujaAdivinaGame, conexionTotalGame,
 ];
 const gameById = (id) => GAMES.find(g => g.id === id);
 
@@ -36,6 +42,10 @@ const COLOR = {
   indigo:  { ring: 'ring-indigo-400',  text: 'text-indigo-400',  btn: 'bg-indigo-500 text-white',    glow: 'shadow-indigo-500/30' },
   orange:  { ring: 'ring-orange-400',  text: 'text-orange-400',  btn: 'bg-orange-500 text-slate-900',glow: 'shadow-orange-500/30' },
   teal:    { ring: 'ring-teal-400',    text: 'text-teal-400',    btn: 'bg-teal-500 text-slate-900',  glow: 'shadow-teal-500/30' },
+  lime:    { ring: 'ring-lime-400',    text: 'text-lime-400',    btn: 'bg-lime-500 text-slate-900',  glow: 'shadow-lime-500/30' },
+  fuchsia: { ring: 'ring-fuchsia-400', text: 'text-fuchsia-400', btn: 'bg-fuchsia-500 text-white',   glow: 'shadow-fuchsia-500/30' },
+  yellow:  { ring: 'ring-yellow-400',  text: 'text-yellow-400',  btn: 'bg-yellow-400 text-slate-900',glow: 'shadow-yellow-500/30' },
+  red:     { ring: 'ring-red-400',     text: 'text-red-400',     btn: 'bg-red-500 text-white',       glow: 'shadow-red-500/30' },
 };
 
 // Estado de navegación
@@ -43,19 +53,32 @@ let currentTeardown = null;
 let lastGameId = null;
 let lastConfig = null;
 let lastPlayers = null;
+let lastTeams = null;   // { A:[...], B:[...] } cuando se juega por equipos
+let lastFlavor = null;  // 'color' (Azul/Rojo) | 'gender' (Hombres/Mujeres)
+let tournament = null;  // Noche Familiar activa (o null)
+
+// Juegos donde NO aplica el modo Equipos global (cooperativos o con su propio modo)
+const TEAMS_DISABLED = ['ahorcado', 'crucigrama', 'dibujaadivina'];
+const teamFlavorLabels = (flavor) => flavor === 'gender'
+  ? { A: '👨 Hombres', B: '👩 Mujeres', aClr: 'blue', bClr: 'pink' }
+  : { A: '🔵 Azul', B: '🔴 Rojo', aClr: 'blue', bClr: 'rose' };
 
 function clearGame() {
   if (currentTeardown) { try { currentTeardown(); } catch (e) {} currentTeardown = null; }
 }
 
 /* =====================================================================
-   API que se pasa a cada juego
+   API que se pasa a cada juego (se construye por lanzamiento).
+   ctx opcional: { onResult(ranking), onExit() } para Noche Familiar.
    ===================================================================== */
-const api = {
-  addPoints: (id, pts) => addScore(id, pts),
-  logGame: (g, s) => logGame(g, s),
-  exit: () => { clearGame(); screenMenu(); },
-};
+function buildApi(ctx) {
+  return {
+    addPoints: (id, pts) => addScore(id, pts),
+    logGame: (g, s) => logGame(g, s),
+    exit: ctx && ctx.onExit ? ctx.onExit : () => { clearGame(); screenMenu(); },
+    result: ctx && ctx.onResult ? ctx.onResult : undefined,
+  };
+}
 
 /* =====================================================================
    PANTALLA: Registro de jugadores
@@ -160,7 +183,7 @@ function screenHome() {
   const reset = $('#resetAll');
   if (reset) reset.onclick = () => {
     if (confirm('¿Borrar jugadores y puntajes? Esta acción no se puede deshacer.')) {
-      fullReset(); screenHome();
+      fullReset(); resetSeen(); screenHome();
     }
   };
 }
@@ -173,6 +196,7 @@ function openAvatarPicker(slots, index, btnEl) {
   const taken = slots.map((s, i) => (i === index ? null : s.avatar)).filter(Boolean);
 
   const modal = document.createElement('div');
+  modal.setAttribute('data-overlay', '');
   modal.className = 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur flex items-center justify-center p-4 animate-pop-in';
   modal.innerHTML = `
     <div class="card p-6 w-full max-w-2xl max-h-[85vh] flex flex-col">
@@ -257,9 +281,9 @@ function screenMenu() {
 /* =====================================================================
    PANTALLA: Configuración previa a la partida
    ===================================================================== */
-// Mínimo de participantes por juego (los "versus" necesitan 2)
+// Mínimo de participantes por juego (versus / parejas necesitan 2)
 function minPlayersFor(game) {
-  return ['stop', 'respincorrecta', 'coincidimos'].includes(game.id) ? 2 : 1;
+  return ['stop', 'respincorrecta', 'coincidimos', 'conexiontotal'].includes(game.id) ? 2 : 1;
 }
 
 function screenConfig(game) {
@@ -268,8 +292,11 @@ function screenConfig(game) {
   const allPlayers = getPlayers();
   const gameMin = minPlayersFor(game);
   const selected = new Set(allPlayers.map(p => p.id)); // todos por defecto
+  const teamsAllowed = !TEAMS_DISABLED.includes(game.id);
+  let teamMode = false;
 
   const chipCls = (on) => `btn-press px-3 py-2 rounded-xl border-2 text-sm font-bold flex items-center gap-1.5 ${on ? 'bg-emerald-600 border-emerald-300' : 'bg-slate-800/60 border-slate-700 opacity-55'}`;
+  const modeCls = (on) => `btn-press flex-1 px-4 py-3 rounded-xl border-2 font-bold ${on ? 'bg-violet-500 border-violet-300' : 'bg-slate-800/60 border-slate-700'}`;
 
   render(`
     <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
@@ -293,6 +320,15 @@ function screenConfig(game) {
           </div>
           <p class="text-xs text-slate-500 mt-2">Toca para incluir/excluir. Mínimo ${gameMin}.</p>
         </div>
+
+        ${teamsAllowed ? `
+        <div class="mb-6">
+          <span class="font-bold block mb-2">Modo de competencia</span>
+          <div class="flex gap-3">
+            <button data-mode="individual" id="modeIndiv" class="${modeCls(true)}">👤 Individual</button>
+            <button data-mode="equipos" id="modeTeam" class="${modeCls(false)}">👥 Equipos</button>
+          </div>
+        </div>` : ''}
 
         <div class="space-y-4 mb-6">
           ${game.config.map(f => `
@@ -342,6 +378,12 @@ function screenConfig(game) {
     };
   });
 
+  // Toggle Individual / Equipos
+  if (teamsAllowed) {
+    $('#modeIndiv').onclick = () => { teamMode = false; $('#modeIndiv').className = modeCls(true); $('#modeTeam').className = modeCls(false); sfx.tick(); };
+    $('#modeTeam').onclick = () => { teamMode = true; $('#modeTeam').className = modeCls(true); $('#modeIndiv').className = modeCls(false); sfx.tick(); };
+  }
+
   $('#playBtn').onclick = () => {
     if (selected.size < gameMin) { toast(`Este juego necesita al menos ${gameMin} jugador${gameMin === 1 ? '' : 'es'} 😉`, 'warn'); return; }
     const cfg = {};
@@ -353,14 +395,140 @@ function screenConfig(game) {
     });
     // Mantiene el orden de registro
     const participants = allPlayers.filter(p => selected.has(p.id));
+    if (teamMode) {
+      if (participants.length < 2) { toast('Equipos necesita al menos 2 jugadores 😉', 'warn'); return; }
+      return screenTeamSetup(game, cfg, participants);
+    }
+    lastTeams = null; lastFlavor = null;
     launchGame(game.id, cfg, participants);
   };
 }
 
 /* =====================================================================
+   PANTALLA: Armar equipos (Azul/Rojo u Hombres/Mujeres)
+   ===================================================================== */
+function screenTeamSetup(game, cfg, participants) {
+  clearGame();
+  let flavor = 'color';
+  const sel = {}; participants.forEach((p, i) => sel[p.id] = i % 2 === 0 ? 'A' : 'B');
+
+  function render() {
+    const L = teamFlavorLabels(flavor);
+    const teamBtn = (team, on) => {
+      const clr = team === 'A' ? L.aClr : L.bClr;
+      return `btn-press px-4 py-2 rounded-xl font-bold border-2 ${on ? `bg-${clr}-500 border-${clr}-300` : 'bg-slate-800/60 border-slate-700'}`;
+    };
+    const flavCls = (on) => `btn-press flex-1 px-4 py-3 rounded-xl border-2 font-bold ${on ? 'bg-amber-500 border-amber-300 text-slate-900' : 'bg-slate-800/60 border-slate-700'}`;
+    app().innerHTML = `
+      <div class="min-h-screen p-4 md:p-8 relative">
+        <button id="tback" class="btn-press absolute top-5 left-5 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-600 text-sm font-bold">← Volver</button>
+        <div class="max-w-2xl mx-auto pt-16">
+          <h1 class="text-3xl md:text-4xl font-display font-extrabold text-center mb-1">${game.emoji} ${esc(game.name)}</h1>
+          <p class="text-center text-slate-300 mb-5">Modo Equipos 👥 — arma los 2 equipos</p>
+
+          <div class="flex gap-3 mb-5">
+            <button data-flavor="color" class="${flavCls(flavor === 'color')}">🔵 Azul vs 🔴 Rojo</button>
+            <button data-flavor="gender" class="${flavCls(flavor === 'gender')}">👨 Hombres vs 👩 Mujeres</button>
+          </div>
+
+          <div class="space-y-3">
+            ${participants.map(p => `
+              <div class="card p-4 flex items-center gap-3">
+                <div class="flex items-center gap-2 font-bold text-lg flex-1"><span class="text-3xl">${p.avatar}</span> ${esc(p.name)}</div>
+                <div class="grid grid-cols-2 gap-2" data-player="${p.id}">
+                  <button data-team="A" class="${teamBtn('A', sel[p.id] === 'A')}">${L.A}</button>
+                  <button data-team="B" class="${teamBtn('B', sel[p.id] === 'B')}">${L.B}</button>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div class="text-center mt-8">
+            <button id="startTeams" class="btn-press px-12 py-5 rounded-2xl bg-gradient-to-r from-blue-500 to-rose-500 text-white text-xl font-extrabold">▶️ ¡A competir por equipos!</button>
+          </div>
+        </div>
+      </div>`;
+
+    $('#tback').onclick = () => screenConfig(game);
+    $$('[data-flavor]').forEach(b => b.onclick = () => { flavor = b.getAttribute('data-flavor'); render(); sfx.tick(); });
+    $$('[data-player]').forEach(g => {
+      const pid = g.getAttribute('data-player');
+      g.querySelectorAll('[data-team]').forEach(b => b.onclick = () => { sel[pid] = b.getAttribute('data-team'); render(); sfx.tick(); });
+    });
+    $('#startTeams').onclick = () => {
+      const A = participants.filter(p => sel[p.id] === 'A');
+      const B = participants.filter(p => sel[p.id] === 'B');
+      if (!A.length || !B.length) { toast('Cada equipo necesita al menos 1 jugador', 'warn'); return; }
+      lastTeams = { A, B }; lastFlavor = flavor;
+      confettiBurst();
+      launchGame(game.id, cfg, participants, { onResult: (r) => showTeamResult(r) });
+    };
+  }
+  render();
+}
+
+/* =====================================================================
+   Resultado por equipos (al terminar un juego en modo Equipos)
+   ===================================================================== */
+function showTeamResult(ranking) {
+  clearGame();
+  if (!lastTeams) return screenMenu();
+  const L = teamFlavorLabels(lastFlavor);
+  const teamOf = {}; lastTeams.A.forEach(p => teamOf[p.id] = 'A'); lastTeams.B.forEach(p => teamOf[p.id] = 'B');
+  const hasScores = ranking.some(r => typeof r.s === 'number');
+
+  let winTeam, sA = 0, sB = 0;
+  if (hasScores) {
+    ranking.forEach(r => { if (teamOf[r.id] === 'A') sA += (r.s || 0); else if (teamOf[r.id] === 'B') sB += (r.s || 0); });
+    winTeam = sA === sB ? null : (sA > sB ? 'A' : 'B');
+  } else {
+    // Juegos "versus": ranking[0] es el ganador único
+    winTeam = ranking[0] ? teamOf[ranking[0].id] : null;
+  }
+
+  const banner = winTeam === null ? '🤝 ¡Empate!' : `${winTeam === 'A' ? L.A : L.B} 🎉 ¡GANA!`;
+  if (winTeam !== null) { sfx.win(); confettiBig(3000); }
+
+  const teamCard = (team) => {
+    const members = lastTeams[team];
+    const label = team === 'A' ? L.A : L.B;
+    const score = team === 'A' ? sA : sB;
+    const isWin = winTeam === team;
+    return `
+      <div class="card p-5 ${isWin ? 'ring-2 ring-amber-400' : ''}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xl font-display font-extrabold">${label}</span>
+          ${hasScores ? `<span class="text-2xl font-display font-extrabold text-amber-300">${score}</span>` : ''}
+        </div>
+        <div class="space-y-1">
+          ${members.map(m => {
+            const r = ranking.find(x => x.id === m.id);
+            const ps = r && typeof r.s === 'number' ? r.s : null;
+            return `<div class="flex items-center justify-between text-sm bg-slate-800/50 rounded-lg px-3 py-1.5">
+              <span>${m.avatar} ${esc(m.name)}</span>${ps !== null ? `<span class="font-bold text-slate-300">${ps}</span>` : ''}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  };
+
+  render(`
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">
+      <h1 class="text-4xl md:text-6xl font-display font-extrabold mb-6 ${winTeam === null ? 'text-slate-200' : 'text-amber-300'}">${banner}</h1>
+      <div class="grid sm:grid-cols-2 gap-4 w-full max-w-2xl mb-8">
+        ${teamCard('A')}
+        ${teamCard('B')}
+      </div>
+      <div class="flex gap-3 flex-wrap justify-center">
+        <button data-action="replay" class="btn-press px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-rose-500 text-white text-lg font-extrabold">🔁 Otra vez</button>
+        <button data-action="scoreboard" class="btn-press px-8 py-4 rounded-2xl bg-slate-700 text-lg font-extrabold">🏅 Tablero</button>
+        <button data-action="home" class="btn-press px-8 py-4 rounded-2xl bg-slate-800 text-lg font-extrabold">🏠 Menú</button>
+      </div>
+    </div>
+  `);
+}
+
+/* =====================================================================
    Lanzar un juego
    ===================================================================== */
-function launchGame(gameId, cfg, participants) {
+function launchGame(gameId, cfg, participants, ctx) {
   const game = gameById(gameId);
   if (!game) return screenMenu();
   clearGame();
@@ -371,7 +539,7 @@ function launchGame(gameId, cfg, participants) {
   lastGameId = gameId;
   lastConfig = cfg;
   lastPlayers = players;
-  currentTeardown = game.start(app(), players, cfg, api) || null;
+  currentTeardown = game.start(app(), players, cfg, buildApi(ctx)) || null;
 }
 
 /* =====================================================================
@@ -415,7 +583,11 @@ function screenScoreboard() {
           }).join('')}
         </div>
 
-        <div class="flex gap-3 justify-center mt-8">
+        <button data-action="noche" class="btn-press w-full mt-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xl font-extrabold shadow-lg shadow-amber-500/30">
+          🏆 Noche Familiar (torneo con ruleta y premios)
+        </button>
+
+        <div class="flex gap-3 justify-center mt-4">
           <button data-action="home" class="btn-press px-6 py-3 rounded-2xl bg-emerald-500 text-white font-extrabold">🎮 Seguir jugando</button>
           <button id="resetScores" class="btn-press px-6 py-3 rounded-2xl bg-slate-800 border border-slate-600 font-bold">♻️ Reiniciar puntajes</button>
         </div>
@@ -428,6 +600,264 @@ function screenScoreboard() {
       resetScores(); toast('Puntajes reiniciados', 'ok'); screenScoreboard();
     }
   };
+}
+
+/* =====================================================================
+   🏆 NOCHE FAMILIAR — torneo con ruleta y premios
+   ===================================================================== */
+// Juegos elegibles en la ruleta (se excluyen los cooperativos sin ganador único)
+const NOCHE_EXCLUDE = ['crucigrama', 'ahorcado'];
+const tournamentGames = () => GAMES.filter(g => !NOCHE_EXCLUDE.includes(g.id));
+
+function defaultCfg(game) {
+  const cfg = {};
+  (game.config || []).forEach(f => { cfg[f.key] = f.default; });
+  return cfg;
+}
+
+function screenNocheSetup() {
+  clearGame();
+  const all = getPlayers();
+  if (all.length < 2) { toast('Necesitas al menos 2 jugadores', 'warn'); return screenScoreboard(); }
+  const selected = new Set(all.map(p => p.id));
+  let mode = 'count';
+  let target = 3;
+  const chipCls = (on) => `btn-press px-3 py-2 rounded-xl border-2 text-sm font-bold flex items-center gap-1.5 ${on ? 'bg-amber-500 border-amber-300 text-slate-900' : 'bg-slate-800/60 border-slate-700 opacity-55'}`;
+  const modeCls = (on) => `btn-press flex-1 px-4 py-4 rounded-2xl border-2 font-bold ${on ? 'bg-amber-500 border-amber-300 text-slate-900' : 'bg-slate-800/60 border-slate-700'}`;
+
+  function render() {
+    const totalGames = tournamentGames().length;
+    app().innerHTML = `
+      <div class="min-h-screen p-4 md:p-8 relative">
+        <button data-action="scoreboard" class="btn-press absolute top-5 left-5 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-600 text-sm font-bold">← Tablero</button>
+        <div class="max-w-2xl mx-auto pt-16">
+          <h1 class="text-4xl md:text-5xl font-display font-extrabold text-center mb-1"><span class="text-amber-400">🏆 Noche</span> <span class="text-rose-400">Familiar</span></h1>
+          <p class="text-center text-slate-300 mb-6">Una ruleta elige el juego; el 1.º se lleva el premio. ¡A ser el Campeón!</p>
+
+          <div class="card p-5 mb-4">
+            <p class="font-bold mb-2">Modalidad</p>
+            <div class="flex gap-3">
+              <button data-mode="count" class="${modeCls(mode === 'count')}">🎯 Llegar a N premios<span class="block text-xs font-normal opacity-80">en cualquier juego</span></button>
+              <button data-mode="each" class="${modeCls(mode === 'each')}">🧩 1 de cada juego<span class="block text-xs font-normal opacity-80">completarlos todos (${totalGames})</span></button>
+            </div>
+            ${mode === 'count' ? `
+              <div class="flex items-center justify-center gap-3 mt-4">
+                <span class="font-bold">Premios para ganar:</span>
+                <button data-t="-1" class="btn-press w-10 h-10 rounded-xl bg-slate-700 text-2xl font-extrabold">−</button>
+                <span id="tval" class="text-3xl font-display font-extrabold w-10 text-center">${target}</span>
+                <button data-t="1" class="btn-press w-10 h-10 rounded-xl bg-slate-700 text-2xl font-extrabold">+</button>
+              </div>` : `<p class="text-center text-slate-400 text-sm mt-3">Gana quien primero consiga un premio de los ${totalGames} juegos.</p>`}
+          </div>
+
+          <div class="card p-5 mb-6">
+            <p class="font-bold mb-2">¿Quiénes compiten?</p>
+            <div id="np" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <button id="startNoche" class="btn-press w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xl font-extrabold">▶️ ¡Comenzar Noche Familiar!</button>
+        </div>
+      </div>`;
+
+    $('#np').innerHTML = all.map(p => `<button data-tog="${p.id}" class="${chipCls(selected.has(p.id))}"><span class="text-xl">${p.avatar}</span> ${esc(p.name)}</button>`).join('');
+    $$('[data-tog]').forEach(b => b.onclick = () => {
+      const id = b.getAttribute('data-tog');
+      if (selected.has(id)) selected.delete(id); else selected.add(id);
+      b.className = chipCls(selected.has(id)); sfx.tick();
+    });
+    $$('[data-mode]').forEach(b => b.onclick = () => { mode = b.getAttribute('data-mode'); render(); sfx.tick(); });
+    $$('[data-t]').forEach(b => b.onclick = () => {
+      target = Math.max(1, Math.min(15, target + Number(b.getAttribute('data-t'))));
+      $('#tval').textContent = target; sfx.tick();
+    });
+    $('#startNoche').onclick = () => {
+      const participants = all.filter(p => selected.has(p.id));
+      if (participants.length < 2) { toast('Selecciona al menos 2 jugadores', 'warn'); return; }
+      tournament = { participants, mode, target, prizes: {} };
+      participants.forEach(p => tournament.prizes[p.id] = []);
+      confettiBurst(); screenNocheStandings();
+    };
+  }
+  render();
+}
+
+function prizeCount(pid) { return tournament.prizes[pid] ? tournament.prizes[pid].length : 0; }
+function uniquePrizes(pid) { return new Set(tournament.prizes[pid] || []); }
+function isChampion(pid) {
+  if (!tournament) return false;
+  if (tournament.mode === 'count') return prizeCount(pid) >= tournament.target;
+  const need = tournamentGames().map(g => g.id);
+  const have = uniquePrizes(pid);
+  return need.every(id => have.has(id));
+}
+
+function screenNocheStandings() {
+  clearGame();
+  if (!tournament) return screenScoreboard();
+  const t = tournament;
+  const totalGames = tournamentGames().length;
+  const standings = [...t.participants].sort((a, b) => (t.mode === 'count'
+    ? prizeCount(b.id) - prizeCount(a.id)
+    : uniquePrizes(b.id).size - uniquePrizes(a.id).size));
+
+  render(`
+    <div class="min-h-screen p-4 md:p-8 relative">
+      <button data-action="home" class="btn-press absolute top-5 left-5 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-600 text-sm font-bold">🏠 Salir</button>
+      <div class="max-w-2xl mx-auto pt-16 text-center">
+        <h1 class="text-3xl md:text-4xl font-display font-extrabold mb-1"><span class="text-amber-400">🏆 Noche</span> <span class="text-rose-400">Familiar</span></h1>
+        <p class="text-slate-300 mb-2">${t.mode === 'count' ? `Primero en llegar a <b>${t.target}</b> premios` : `Consigue 1 premio de cada juego (${totalGames})`}</p>
+
+        <div class="card p-5 my-6 text-left space-y-2">
+          ${standings.map((p, i) => {
+            const c = t.mode === 'count' ? prizeCount(p.id) : uniquePrizes(p.id).size;
+            const goal = t.mode === 'count' ? t.target : totalGames;
+            const pct = Math.round((c / goal) * 100);
+            return `
+              <div class="px-3 py-3 rounded-xl ${i === 0 && c > 0 ? 'bg-amber-500/15 ring-1 ring-amber-400' : 'bg-slate-800/50'}">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-bold flex items-center gap-2"><span class="text-2xl">${p.avatar}</span> ${esc(p.name)}</span>
+                  <span class="font-display font-extrabold text-amber-300">🏆 ${c}/${goal}</span>
+                </div>
+                <div class="h-2.5 rounded-full bg-slate-900 overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-rose-500" style="width:${pct}%"></div></div>
+              </div>`;
+          }).join('')}
+        </div>
+
+        <button id="spin" class="btn-press w-full py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-2xl font-extrabold animate-pulse-fast">🎡 ¡Girar la ruleta!</button>
+        <p class="text-slate-500 text-sm mt-4">La ruleta elige el juego donde competirán todos.</p>
+      </div>
+    </div>
+  `);
+  $('#spin').onclick = ruletaSpin;
+}
+
+function ruletaSpin() {
+  clearGame();
+  const games = tournamentGames();
+  const COMODIN = { id: '__comodin__', name: '¡Comodín! Elige tú', emoji: '🃏', color: 'violet' };
+  const wheel = [...games, COMODIN];
+  const result = wheel[Math.floor(Math.random() * wheel.length)];
+
+  render(`
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-6">
+      <p class="uppercase tracking-widest text-amber-400 font-bold text-sm mb-4">🎡 Girando la ruleta…</p>
+      <div id="wheel" class="card w-80 max-w-full py-12 px-6 mb-2">
+        <div id="wheel-emoji" class="text-7xl mb-2">🎲</div>
+        <div id="wheel-name" class="text-2xl font-display font-extrabold text-amber-300">…</div>
+      </div>
+    </div>
+  `);
+
+  const emojiEl = $('#wheel-emoji'), nameEl = $('#wheel-name'), box = $('#wheel');
+  // Secuencia de "parpadeo" desacelerando hasta el resultado
+  const steps = [];
+  const N = 22;
+  for (let i = 0; i < N; i++) steps.push(wheel[Math.floor(Math.random() * wheel.length)]);
+  steps.push(result);
+
+  let i = 0;
+  function tick() {
+    const g = steps[i];
+    emojiEl.textContent = g.emoji;
+    nameEl.textContent = g.name;
+    sfx.tick();
+    i++;
+    if (i < steps.length) {
+      const delay = 60 + Math.pow(i / steps.length, 3) * 320; // desacelera
+      setTimeout(tick, delay);
+    } else {
+      // resultado final
+      box.classList.add('animate-pop-in', 'ring-2', 'ring-amber-400');
+      sfx.win(); confettiBurst();
+      setTimeout(() => {
+        if (result.id === '__comodin__') return comodinPick();
+        showChosenGame(gameById(result.id));
+      }, 900);
+    }
+  }
+  tick();
+}
+
+function comodinPick() {
+  render(`
+    <div class="min-h-screen p-4 md:p-8">
+      <div class="max-w-2xl mx-auto pt-12 text-center">
+        <div class="text-7xl mb-2">🃏</div>
+        <h1 class="text-3xl font-display font-extrabold text-violet-300 mb-1">¡Comodín!</h1>
+        <p class="text-slate-300 mb-6">Elige el juego donde competirán todos:</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${tournamentGames().map(g => `<button data-pick="${g.id}" class="btn-press card p-4 text-left ring-1 ${(COLOR[g.color] || COLOR.violet).ring}">
+            <div class="text-4xl">${g.emoji}</div><div class="font-display font-extrabold ${(COLOR[g.color] || COLOR.violet).text}">${esc(g.name)}</div></button>`).join('')}
+        </div>
+      </div>
+    </div>
+  `);
+  $$('[data-pick]').forEach(b => b.onclick = () => showChosenGame(gameById(b.getAttribute('data-pick'))));
+}
+
+function showChosenGame(game) {
+  const c = COLOR[game.color] || COLOR.violet;
+  render(`
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">
+      <p class="uppercase tracking-widest text-amber-400 font-bold text-sm mb-2">La ruleta eligió</p>
+      <div class="text-8xl mb-3 animate-float">${game.emoji}</div>
+      <h1 class="text-4xl md:text-6xl font-display font-extrabold ${c.text} mb-2">${esc(game.name)}</h1>
+      <p class="text-slate-300 mb-8 max-w-md">${esc(game.short)}</p>
+      <button id="goGame" class="btn-press px-12 py-5 rounded-2xl ${c.btn} text-xl font-extrabold">▶️ ¡A competir!</button>
+    </div>
+  `);
+  $('#goGame').onclick = () => startTournamentGame(game);
+}
+
+function startTournamentGame(game) {
+  lastTeams = null; lastFlavor = null; // el torneo es individual
+  launchGame(game.id, defaultCfg(game), tournament.participants, {
+    onResult: (ranking) => onTournamentGameDone(game, ranking),
+    onExit: () => screenNocheStandings(),
+  });
+}
+
+function onTournamentGameDone(game, ranking) {
+  clearGame();
+  const winner = ranking && ranking[0];
+  if (!winner || !tournament) return screenNocheStandings();
+  tournament.prizes[winner.id] = tournament.prizes[winner.id] || [];
+  tournament.prizes[winner.id].push(game.id);
+  sfx.win(); confettiBig(2500);
+
+  const champ = isChampion(winner.id);
+  const goal = tournament.mode === 'count' ? tournament.target : tournamentGames().length;
+  const have = tournament.mode === 'count' ? prizeCount(winner.id) : uniquePrizes(winner.id).size;
+
+  render(`
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">
+      <p class="uppercase tracking-widest text-amber-400 font-bold text-sm mb-2">Premio de ${esc(game.name)} ${game.emoji}</p>
+      <div class="text-8xl mb-3 animate-float">${winner.avatar}</div>
+      <h1 class="text-4xl md:text-5xl font-display font-extrabold text-amber-300 mb-1">¡${esc(winner.name)} gana el premio! 🏆</h1>
+      <p class="text-xl text-slate-300 mb-8">Lleva <b class="text-amber-300">${have}/${goal}</b> premios</p>
+      <button id="cont" class="btn-press px-12 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xl font-extrabold">${champ ? '👑 ¡Ver al Campeón!' : '➡️ Seguir la Noche'}</button>
+    </div>
+  `);
+  $('#cont').onclick = () => { if (champ) championScreen(winner); else screenNocheStandings(); };
+}
+
+function championScreen(winner) {
+  clearGame();
+  confettiBig(4000);
+  render(`
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">
+      <p class="uppercase tracking-widest text-amber-400 font-bold text-lg mb-2">👑 Campeón de la Noche Familiar 👑</p>
+      <div class="text-[8rem] leading-none mb-4 animate-float">${winner.avatar}</div>
+      <h1 class="text-5xl md:text-7xl font-display font-extrabold text-amber-300 mb-3">¡${esc(winner.name)}!</h1>
+      <p class="text-xl text-slate-300 mb-8">Ganó la Noche Familiar 🎉🏆🎉</p>
+      <div class="flex gap-3 flex-wrap justify-center">
+        <button id="again" class="btn-press px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white text-lg font-extrabold">🔁 Otra Noche</button>
+        <button data-action="scoreboard" class="btn-press px-8 py-4 rounded-2xl bg-slate-700 text-lg font-extrabold">🏅 Tablero</button>
+        <button data-action="home" class="btn-press px-8 py-4 rounded-2xl bg-slate-800 text-lg font-extrabold">🏠 Menú</button>
+      </div>
+    </div>
+  `);
+  tournament = null;
+  $('#again').onclick = () => screenNocheSetup();
 }
 
 /* =====================================================================
@@ -446,12 +876,15 @@ document.addEventListener('click', (e) => {
 
   const action = el.getAttribute('data-action');
   switch (action) {
-    case 'home':       screenMenu(); break;
-    case 'players':    screenHome(); break;
+    case 'home':       tournament = null; screenMenu(); break;
+    case 'players':    tournament = null; screenHome(); break;
     case 'scoreboard': screenScoreboard(); break;
+    case 'noche':      screenNocheSetup(); break;
     case 'replay':
-      if (lastGameId && lastConfig) launchGame(lastGameId, lastConfig, lastPlayers);
-      else screenMenu();
+      if (lastGameId && lastConfig) {
+        if (lastTeams) launchGame(lastGameId, lastConfig, lastPlayers, { onResult: (r) => showTeamResult(r) });
+        else launchGame(lastGameId, lastConfig, lastPlayers);
+      } else screenMenu();
       break;
   }
 });
@@ -459,4 +892,5 @@ document.addEventListener('click', (e) => {
 /* =====================================================================
    Arranque
    ===================================================================== */
+syncFromCloud(); // trae de la nube lo que ya salió (best-effort)
 getPlayers().length ? screenMenu() : screenHome();

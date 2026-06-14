@@ -9,6 +9,7 @@ import {
   $, esc, pick, shuffle, makeTimer, paintTimer, confettiBig, sfx, toast,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 // Primera letra normalizada (sin acentos, en mayúscula)
 const firstLetter = (w) => w.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-ZÑ]/g, '').charAt(0);
@@ -63,7 +64,8 @@ export const stopGame = {
 
     function categoryFor(band) {
       const list = CATEGORIES.filter(c => c.ages.includes(band) && c.words && c.words.length);
-      return pick(list.length ? list : CATEGORIES.filter(c => c.words && c.words.length));
+      const pool = list.length ? list : CATEGORIES.filter(c => c.words && c.words.length);
+      return drawNext('stop:cat:' + band, pool, c => c.name);
     }
 
     function startTurn() {
@@ -180,6 +182,7 @@ export const stopGame = {
       if (timer) timer.stop();
       api.addPoints(player.id, PLACEMENT_POINTS[1]);
       api.logGame(stopGame.name, `Ganó ${player.name}`);
+      if (api.result) { api.result([player]); return; }
       sfx.win(); confettiBig(3000);
       root.innerHTML = `
         <div class="min-h-screen flex flex-col items-center justify-center text-center p-6 animate-pop-in">

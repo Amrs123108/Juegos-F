@@ -192,12 +192,17 @@ export function ageAssignScreen(root, players, ageOf, opts = {}) {
     indigo: 'bg-indigo-500 border-indigo-300',
     orange: 'bg-orange-500 border-orange-300 text-slate-900',
     teal: 'bg-teal-500 border-teal-300 text-slate-900',
+    fuchsia: 'bg-fuchsia-500 border-fuchsia-300',
+    lime: 'bg-lime-500 border-lime-300 text-slate-900',
+    yellow: 'bg-yellow-400 border-yellow-300 text-slate-900',
+    red: 'bg-red-500 border-red-300',
   }[color] || 'bg-violet-500 border-violet-300';
   const btnColor = {
     violet: 'bg-violet-500', emerald: 'bg-emerald-500', amber: 'bg-amber-500 text-slate-900',
     pink: 'bg-pink-500', cyan: 'bg-cyan-500 text-slate-900', rose: 'bg-rose-500',
     sky: 'bg-sky-500 text-slate-900', indigo: 'bg-indigo-500', orange: 'bg-orange-500 text-slate-900',
-    teal: 'bg-teal-500 text-slate-900',
+    teal: 'bg-teal-500 text-slate-900', fuchsia: 'bg-fuchsia-500', lime: 'bg-lime-500 text-slate-900',
+    yellow: 'bg-yellow-400 text-slate-900', red: 'bg-red-500',
   }[color] || 'bg-violet-500';
 
   root.innerHTML = `

@@ -8,6 +8,7 @@ import {
   $, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx,
   backBtn, ageAssignScreen, AGE_TO_LEVELS, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 export const charadasGame = {
   ...CHARADAS_CONFIG,
@@ -23,15 +24,11 @@ export const charadasGame = {
     let timer = null, teardownKey = null;
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
 
-    // Colas de palabras por nivel para no repetir
-    const queues = {};
+    // Palabras por nivel sin repetir en la noche (ver memory.js)
     function nextWordFor(band) {
       const levels = AGE_TO_LEVELS[band] || ['facil'];
-      const key = band;
-      if (!queues[key] || queues[key].pos >= queues[key].list.length) {
-        queues[key] = { list: shuffle(CHARADAS.filter(c => levels.includes(c.nivel))), pos: 0 };
-      }
-      return queues[key].list[queues[key].pos++];
+      const pool = CHARADAS.filter(c => levels.includes(c.nivel));
+      return drawNext('charadas:' + band, pool, c => c.word);
     }
 
     // 1) Asignar edades
@@ -155,6 +152,7 @@ export const charadasGame = {
       cleanup();
       api.logGame(charadasGame.name, 'Ronda completada');
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `

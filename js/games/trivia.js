@@ -7,6 +7,7 @@ import {
   $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -21,16 +22,14 @@ export const triviaGame = {
     const time = cfg.time;
     const ageOf = {};
 
-    // Pools por edad (se rebarajan al agotarse)
+    // Pools por edad (sin repetir en la noche; ver memory.js)
     const pools = {
-      nina: shuffle(TRIVIA.filter(t => t.age === 'nina')),
-      ado: shuffle(TRIVIA.filter(t => t.age === 'ado')),
-      adulto: shuffle(TRIVIA.filter(t => t.age === 'adulto')),
+      nina: TRIVIA.filter(t => t.age === 'nina'),
+      ado: TRIVIA.filter(t => t.age === 'ado'),
+      adulto: TRIVIA.filter(t => t.age === 'adulto'),
     };
-    const ptr = { nina: 0, ado: 0, adulto: 0 };
     function nextQuestion(age) {
-      if (ptr[age] >= pools[age].length) { pools[age] = shuffle(pools[age]); ptr[age] = 0; }
-      return pools[age][ptr[age]++];
+      return drawNext('trivia:' + age, pools[age], q => q.q);
     }
 
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
@@ -157,6 +156,7 @@ export const triviaGame = {
       cleanup();
       api.logGame(triviaGame.name, 'Ronda completada');
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `

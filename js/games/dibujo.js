@@ -9,6 +9,7 @@ import {
   $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 const BASE_PTS = 40;
 const PER_STEP = 20;
@@ -27,13 +28,9 @@ export const dibujoGame = {
     let timer = null, drawInt = null, teardownKey = null;
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
 
-    const queues = {};
     function nextItemFor(band) {
-      if (!queues[band] || queues[band].pos >= queues[band].list.length) {
-        const list = shuffle(DIBUJOS.filter(d => d.age === band));
-        queues[band] = { list: list.length ? list : shuffle(DIBUJOS), pos: 0 };
-      }
-      return queues[band].list[queues[band].pos++];
+      const list = DIBUJOS.filter(d => d.age === band);
+      return drawNext('dibujo:' + band, list.length ? list : DIBUJOS, d => d.name);
     }
 
     ageAssignScreen(root, players, ageOf, {
@@ -194,6 +191,7 @@ export const dibujoGame = {
       stopTimers();
       api.logGame(dibujoGame.name, 'Ronda completada');
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `

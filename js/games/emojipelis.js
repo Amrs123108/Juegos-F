@@ -8,6 +8,7 @@ import {
   $, $$, esc, shuffle, makeTimer, paintTimer, confettiBurst, confettiBig, sfx, toast,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+import { drawNext } from '../memory.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -28,10 +29,8 @@ export const emojipelisGame = {
       const seen = new Set();
       pools[age] = shuffle(EMOJIPELIS.filter(m => m.age === age && !seen.has(m.answer) && seen.add(m.answer)));
     });
-    const ptr = { nina: 0, ado: 0, adulto: 0 };
     function nextMovie(age) {
-      if (ptr[age] >= pools[age].length) { pools[age] = shuffle(pools[age]); ptr[age] = 0; }
-      return pools[age][ptr[age]++];
+      return drawNext('emojipelis:' + age, pools[age], m => m.answer);
     }
     function buildOptions(age, movie) {
       const others = shuffle(pools[age].filter(m => m.answer !== movie.answer)).slice(0, 3).map(m => m.answer);
@@ -157,6 +156,7 @@ export const emojipelisGame = {
       cleanup();
       api.logGame(emojipelisGame.name, 'Ronda completada');
       const ranking = players.map(p => ({ ...p, s: sessionScore[p.id] })).sort((a, b) => b.s - a.s);
+      if (api.result) { api.result(ranking); return; }
       const top = ranking[0];
       if (top.s > 0) { sfx.win(); confettiBig(2500); }
       root.innerHTML = `
