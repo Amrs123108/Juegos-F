@@ -4,11 +4,14 @@
    Barra espaciadora para pasar. Quien llegue a 0 pierde una vida.
    Eliminatorio hasta que quede un solo ganador.
    =========================================================== */
-import { LETTERS, CATEGORIES, STOP_CONFIG } from '../data/stop.js';
+import { CATEGORIES, STOP_CONFIG } from '../data/stop.js';
 import {
-  $, esc, pick, makeTimer, paintTimer, confettiBig, sfx, toast,
+  $, esc, pick, shuffle, makeTimer, paintTimer, confettiBig, sfx, toast,
   backBtn, ageAssignScreen, AGE_LABELS,
 } from '../ui.js';
+
+// Primera letra normalizada (sin acentos, en mayúscula)
+const firstLetter = (w) => w.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-ZÑ]/g, '').charAt(0);
 
 export const stopGame = {
   ...STOP_CONFIG,
@@ -29,6 +32,10 @@ export const stopGame = {
     const PLACEMENT_POINTS = { 1: 300, 2: 200, 3: 150, 4: 100, 5: 50 };
 
     let els = {};
+    let curExample = '';        // ejemplo de respuesta válida del turno actual
+    let curLetter = '', curCategory = '';
+    let paused = false;         // true mientras se muestra la pantalla de "se acabó"
+    let pendingContinue = null; // acción a ejecutar al continuar
 
     // 1) Asignar edades
     ageAssignScreen(root, players, ageOf, {
@@ -55,17 +62,28 @@ export const stopGame = {
     function currentPlayer() { return alive[turnPos]; }
 
     function categoryFor(band) {
-      const list = CATEGORIES.filter(c => c.ages.includes(band));
-      return (pick(list) || pick(CATEGORIES)).name;
+      const list = CATEGORIES.filter(c => c.ages.includes(band) && c.words && c.words.length);
+      return pick(list.length ? list : CATEGORIES.filter(c => c.words && c.words.length));
     }
 
     function startTurn() {
       if (finished) return;
       const p = currentPlayer();
-      const letter = pick(LETTERS);
       const category = categoryFor(ageOf[p.id]);
 
-      els.cat.textContent = category;
+      // Solo letras que tengan al menos una palabra de ejemplo (combo siempre resoluble)
+      const byLetter = {};
+      category.words.forEach(w => {
+        const L = firstLetter(w);
+        if (!L) return;
+        (byLetter[L] = byLetter[L] || []).push(w);
+      });
+      const letter = pick(Object.keys(byLetter));
+      curLetter = letter;
+      curCategory = category.name;
+      curExample = pick(shuffle(byLetter[letter]));   // ejemplo válido a revelar
+
+      els.cat.textContent = category.name;
       els.letter.textContent = letter;
       els.letter.classList.remove('animate-pop-in'); void els.letter.offsetWidth;
       els.letter.classList.add('animate-pop-in');
@@ -104,17 +122,42 @@ export const stopGame = {
       sfx.buzz();
       const p = currentPlayer();
       p.lives -= 1;
+      const eliminated = p.lives <= 0;
       els.timer.textContent = '0';
-      els.timer.classList.add('animate-shake');
-      setTimeout(() => els.timer.classList.remove('animate-shake'), 500);
 
-      if (p.lives <= 0) {
-        eliminate(turnPos);
-      } else {
-        toast(`${p.name} se quedó limpio 😬 (-1 vida)`, 'bad');
-        turnPos = (turnPos + 1) % alive.length;
-        startTurn();
-      }
+      // Define qué pasa al continuar
+      pendingContinue = () => {
+        paused = false;
+        pendingContinue = null;
+        const panel = $('#st-timeup');
+        if (panel) panel.remove();
+        if (eliminated) {
+          eliminate(turnPos);
+        } else {
+          turnPos = (turnPos + 1) % alive.length;
+          startTurn();
+        }
+      };
+
+      // Pantalla "se acabó el tiempo" con un ejemplo válido
+      paused = true;
+      const panel = document.createElement('div');
+      panel.id = 'st-timeup';
+      panel.className = 'fixed inset-0 z-40 bg-slate-900/85 backdrop-blur flex items-center justify-center p-6 animate-pop-in';
+      panel.innerHTML = `
+        <div class="card p-8 text-center max-w-lg">
+          <div class="text-7xl mb-2 animate-shake">⏰</div>
+          <h2 class="text-3xl font-display font-extrabold text-rose-400 mb-1">¡Se acabó el tiempo!</h2>
+          <p class="text-slate-300 mb-4">${esc(p.name)} se quedó limpio 😬</p>
+          <div class="bg-slate-800/70 rounded-2xl p-4 mb-4">
+            <p class="text-slate-400 text-sm">Con <b class="text-violet-300">"${esc(curLetter)}"</b> en <b class="text-emerald-300">${esc(curCategory)}</b> podías decir:</p>
+            <p class="text-2xl font-display font-extrabold text-amber-300 mt-1">${esc(curExample)}</p>
+          </div>
+          <p class="font-bold mb-5 ${eliminated ? 'text-rose-400' : 'text-amber-300'}">${eliminated ? `${esc(p.name)} quedó eliminado 💀` : `Pierde 1 vida (le quedan ${'❤️'.repeat(p.lives)})`}</p>
+          <button data-continue class="btn-press px-10 py-4 rounded-2xl bg-amber-500 text-slate-900 text-xl font-extrabold">Continuar ▶️ <span class="text-sm opacity-70">(ESPACIO)</span></button>
+        </div>`;
+      document.body.appendChild(panel);
+      panel.querySelector('[data-continue]').onclick = () => { if (pendingContinue) pendingContinue(); };
     }
 
     function eliminate(pos) {
@@ -152,17 +195,24 @@ export const stopGame = {
 
     function onKey(e) {
       if (finished) return;
+      if (paused) {
+        if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); if (pendingContinue) pendingContinue(); }
+        else if (e.key === 'Escape') { api.exit(); }
+        return;
+      }
       if (e.code === 'Space') { e.preventDefault(); passTurn(); }
       else if (e.key === 'Escape') { api.exit(); }
     }
     function onClick(e) {
-      if (e.target.closest('[data-pass]')) { if (!finished) passTurn(); }
+      if (e.target.closest('[data-pass]')) { if (!finished && !paused) passTurn(); }
     }
 
     return () => {
       document.removeEventListener('keydown', onKey);
       root.removeEventListener('click', onClick);
       if (timer) timer.stop();
+      const panel = document.getElementById('st-timeup');
+      if (panel) panel.remove();
     };
 
     function shell() {
