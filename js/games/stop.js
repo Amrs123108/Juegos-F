@@ -129,7 +129,7 @@ export const stopGame = {
       pendingContinue = () => {
         paused = false;
         pendingContinue = null;
-        const panel = $('#st-timeup');
+        const panel = document.getElementById('st-timeup');
         if (panel) panel.remove();
         if (eliminated) {
           eliminate(turnPos);
