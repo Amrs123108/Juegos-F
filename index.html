@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Panama Family Party Game - Juego de fiesta para la sala, sabor 100% panameño." />
+  <title>🇵🇦 Panama Family Party Game</title>
+
+  <!-- Tailwind CSS (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neon: {
+              violet: '#a855f7',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              pink: '#ec4899',
+              cyan: '#22d3ee',
+            },
+          },
+          fontFamily: {
+            display: ['"Baloo 2"', 'system-ui', 'sans-serif'],
+            body: ['Nunito', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'pop-in': 'popIn .4s cubic-bezier(.18,.89,.32,1.28) both',
+            'float': 'float 4s ease-in-out infinite',
+            'pulse-fast': 'pulse 1s ease-in-out infinite',
+            'shake': 'shake .5s ease-in-out',
+            'slide-up': 'slideUp .5s ease both',
+            'glow': 'glow 2s ease-in-out infinite',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- canvas-confetti (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="bg-slate-900 text-white font-body min-h-screen overflow-x-hidden selection:bg-neon-violet/40">
+  <!-- Fondo decorativo -->
+  <div class="bg-aurora" aria-hidden="true"></div>
+
+  <div id="app" class="relative z-10 min-h-screen"></div>
+
+  <!-- Punto de entrada -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

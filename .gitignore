@@ -1,0 +1,14 @@
+# Dependencias (no se usan, pero por si acaso)
+node_modules/
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Vercel
+.vercel

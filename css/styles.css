@@ -1,0 +1,188 @@
+/* ===========================================================
+   Panama Family Party Game — estilos y animaciones custom
+   (Tailwind maneja el grueso; aquí van keyframes y detalles)
+   =========================================================== */
+
+:root {
+  --neon-violet: #a855f7;
+  --neon-emerald: #10b981;
+  --neon-amber: #f59e0b;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: radial-gradient(1200px 800px at 10% -10%, #1e1b4b 0%, transparent 55%),
+              radial-gradient(1000px 700px at 110% 10%, #064e3b 0%, transparent 50%),
+              #0f172a;
+  background-attachment: fixed;
+}
+
+/* Aurora animada de fondo */
+.bg-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 400px at 20% 20%, rgba(168, 85, 247, 0.18), transparent 60%),
+    radial-gradient(500px 400px at 80% 30%, rgba(16, 185, 129, 0.16), transparent 60%),
+    radial-gradient(700px 500px at 50% 100%, rgba(245, 158, 11, 0.12), transparent 60%);
+  animation: aurora 14s ease-in-out infinite alternate;
+  filter: blur(10px);
+}
+
+@keyframes aurora {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(0, -2%, 0) scale(1.05); }
+  100% { transform: translate3d(0, 1%, 0) scale(1.02); }
+}
+
+/* ---- Keyframes usados por tailwind.config ---- */
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(.7) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-10px); }
+  40%      { transform: translateX(10px); }
+  60%      { transform: translateX(-8px); }
+  80%      { transform: translateX(8px); }
+}
+@keyframes slideUp {
+  0%   { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes glow {
+  0%, 100% { filter: drop-shadow(0 0 6px currentColor); }
+  50%      { filter: drop-shadow(0 0 22px currentColor); }
+}
+
+/* Temporizador en peligro (parpadeo rojo < 5s) */
+.timer-danger {
+  color: #f87171 !important;
+  animation: dangerBlink .6s steps(2, start) infinite;
+}
+@keyframes dangerBlink {
+  0%   { transform: scale(1);   text-shadow: 0 0 0 transparent; }
+  50%  { transform: scale(1.12); text-shadow: 0 0 28px rgba(248,113,113,.9); }
+  100% { transform: scale(1);   text-shadow: 0 0 0 transparent; }
+}
+
+/* Tarjetas / botones con efecto neón */
+.card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.btn-press {
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn-press:hover  { transform: scale(1.05); }
+.btn-press:active { transform: scale(0.96); }
+
+/* Resaltado de selección */
+.selectable { transition: transform .15s ease, box-shadow .2s ease; }
+.selectable:hover { transform: translateY(-4px) scale(1.03); }
+
+/* Letra gigante del STOP */
+.giant-letter {
+  font-family: 'Baloo 2', sans-serif;
+  text-shadow: 0 0 40px rgba(168, 85, 247, .7);
+}
+
+/* Scrollbar bonita */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(15,23,42,.6); }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,.5); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,.8); }
+
+/* Ahorcado: dibujo CSS */
+.gallows { position: relative; width: 220px; height: 260px; margin: 0 auto; }
+.gallows .part {
+  position: absolute;
+  background: #e2e8f0;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  transform: scale(.6);
+}
+.gallows .part.show { opacity: 1; transform: scale(1); }
+
+.g-base   { bottom: 0; left: 10px; width: 180px; height: 10px; }
+.g-pole   { bottom: 0; left: 40px; width: 10px; height: 250px; }
+.g-beam   { top: 0; left: 40px; width: 120px; height: 10px; }
+.g-rope   { top: 0; left: 150px; width: 6px; height: 40px; }
+.g-head   { top: 36px; left: 132px; width: 42px; height: 42px; border-radius: 50%; background: transparent; border: 6px solid #e2e8f0; }
+.g-body   { top: 78px; left: 150px; width: 6px; height: 70px; }
+.g-arm-l  { top: 90px; left: 122px; width: 36px; height: 6px; transform-origin: right center; transform: rotate(25deg) scale(.6); }
+.g-arm-r  { top: 90px; left: 152px; width: 36px; height: 6px; transform-origin: left center; transform: rotate(-25deg) scale(.6); }
+.g-leg-l  { top: 142px; left: 124px; width: 36px; height: 6px; transform-origin: right center; transform: rotate(-25deg) scale(.6); }
+.g-leg-r  { top: 142px; left: 152px; width: 36px; height: 6px; transform-origin: left center; transform: rotate(25deg) scale(.6); }
+.g-arm-l.show { transform: rotate(25deg) scale(1); }
+.g-arm-r.show { transform: rotate(-25deg) scale(1); }
+.g-leg-l.show { transform: rotate(-25deg) scale(1); }
+.g-leg-r.show { transform: rotate(25deg) scale(1); }
+
+/* Casillas de letra del ahorcado */
+.letter-slot {
+  width: clamp(28px, 6vw, 54px);
+  height: clamp(40px, 8vw, 72px);
+  border-bottom: 5px solid rgba(168,85,247,.8);
+  font-size: clamp(1.4rem, 5vw, 2.6rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', sans-serif;
+}
+
+/* Teclado del ahorcado */
+.key {
+  width: clamp(34px, 7vw, 52px);
+  height: clamp(40px, 8vw, 56px);
+}
+
+/* ---- Crucigrama ---- */
+.cw-cell-wrap { position: relative; width: clamp(26px, 6.5vw, 46px); height: clamp(26px, 6.5vw, 46px); }
+.cw-cell {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 3.5vw, 1.4rem);
+  background: #0f172a;
+  color: #fff;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  border-radius: 4px;
+  caret-color: #22d3ee;
+  outline: none;
+}
+.cw-cell:focus { border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.5); }
+.cw-cell:disabled { -webkit-text-fill-color: #fff; opacity: 1; }
+.cw-block { width: clamp(26px, 6.5vw, 46px); height: clamp(26px, 6.5vw, 46px); }
+.cw-num {
+  position: absolute;
+  top: 0; left: 2px;
+  font-size: clamp(8px, 1.8vw, 11px);
+  color: #67e8f9;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Utilidad: ocultar pero accesible */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
