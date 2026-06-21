@@ -77,8 +77,11 @@ export function drawNext(key, pool, idFn) {
   const id = idFn || ((x) => x);
   if (!mem[key]) mem[key] = new Set();
   let avail = pool.filter((it) => !mem[key].has(String(id(it))));
-  if (!avail.length) {           // ya salieron todos -> ciclo nuevo
-    mem[key].clear();
+  if (!avail.length) {
+    // Reset selectivo: solo borra los items de ESTE pool, no de otros pools
+    // que comparten la misma clave. Evita que un reset de un sub-pool
+    // limpie el historial de otro sub-pool distinto (bug cross-edad).
+    pool.forEach(it => mem[key].delete(String(id(it))));
     avail = pool.slice();
   }
   const choice = avail[Math.floor(Math.random() * avail.length)];
@@ -87,21 +90,35 @@ export function drawNext(key, pool, idFn) {
   return choice;
 }
 
-/** Saca varios distintos (sin repetir dentro de la misma tanda). */
+/** Saca n items distintos del pool sin repetir en la misma tanda.
+    Dibuja sobre el pool completo de una vez para evitar que items "quemados"
+    por el loop interno acaben en mem[key] sin llegar al output. */
 export function drawMany(key, pool, n, idFn) {
   const id = idFn || ((x) => x);
+  if (!pool || !pool.length) return [];
+  if (!mem[key]) mem[key] = new Set();
+
+  const need = Math.min(n, pool.length);
   const out = [];
-  const used = new Set();
-  let guard = 0;
-  while (out.length < n && guard < n * 5) {
-    guard++;
-    const it = drawNext(key, pool, id);
-    if (it === undefined) break;
-    const k = String(id(it));
-    if (used.has(k)) continue; // evita duplicado dentro de la tanda
-    used.add(k);
+
+  // 1. Items del pool que aún no han salido en esta clave
+  let avail = pool.filter(it => !mem[key].has(String(id(it))));
+
+  // 2. Si no hay suficientes, reset selectivo y vuelve a llenar
+  if (avail.length < need) {
+    pool.forEach(it => mem[key].delete(String(id(it))));
+    avail = pool.slice();
+  }
+
+  // 3. Barajar y tomar los primeros `need`
+  const shuffled = [...avail].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < need && i < shuffled.length; i++) {
+    const it = shuffled[i];
+    mem[key].add(String(id(it)));
     out.push(it);
   }
+
+  schedulePersist();
   return out;
 }
 

@@ -24,11 +24,14 @@ export const charadasGame = {
     let timer = null, teardownKey = null;
     const sessionScore = Object.fromEntries(players.map(p => [p.id, 0]));
 
-    // Palabras por nivel sin repetir en la noche (ver memory.js)
+    // Palabras por nivel sin repetir en la noche (ver memory.js).
+    // Clave global 'charadas' para que una palabra 'facil' ya vista por
+    // la niña no vuelva a salirle a un jugador ado/adulto (cuyo pool
+    // incluye las mismas palabras fáciles).
     function nextWordFor(band) {
       const levels = AGE_TO_LEVELS[band] || ['facil'];
       const pool = CHARADAS.filter(c => levels.includes(c.nivel));
-      return drawNext('charadas:' + band, pool, c => c.word);
+      return drawNext('charadas', pool, c => c.word);
     }
 
     // 1) Asignar edades

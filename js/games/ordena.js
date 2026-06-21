@@ -65,7 +65,9 @@ export const ordenaGame = {
       const B = BANDS[band] || BANDS.ado;
       const time = modo === 'caos' ? Math.max(10, B.time - 8) : B.time;
       const pool = ORDENA.filter(w => { const L = nlen(w.word); return L >= B.min && L <= B.max; });
-      const item = drawNext('ordena:' + band, pool.length ? pool : ORDENA, w => w.word) || pool[0] || ORDENA[0];
+      // Clave global 'ordena': evita que una palabra de 5 letras (en el rango
+      // de nina max:5 Y ado min:5) se repita entre jugadores de distinta edad.
+      const item = drawNext('ordena', pool.length ? pool : ORDENA, w => w.word) || pool[0] || ORDENA[0];
       const scrambled = scramble(item.word);
       let answered = false;
 
