@@ -295,6 +295,107 @@ export const AGILIDAD = [
   { tipo:'memoria', edad:'adulto', secuencia:['Bach','Mozart','Beethoven','Chopin','Debussy'], q:'¿Cuál fue el TERCER compositor?', r:'beethoven', alt:['Beethoven'] },
   { tipo:'memoria', edad:'adulto', secuencia:['Constitución','Ley','Decreto','Resolución','Circular'], q:'¿Cuál fue el PRIMERO?', r:'constitucion', alt:['constitución','la constitución'] },
   { tipo:'memoria', edad:'adulto', secuencia:['1903','1914','1968','1977','1989','1999'], q:'¿Cuántas fechas históricas viste?', r:'6', alt:['seis'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — CÁLCULO RÁPIDO
+  // ═══════════════════════════════════════════════════════
+  { tipo:'calculo', edad:'menor', q:'¿Cuánto es 1 + 9?', r:'10' },
+  { tipo:'calculo', edad:'menor', q:'¿Cuánto es 7 − 3?', r:'4' },
+  { tipo:'calculo', edad:'menor', q:'¿Cuántas ruedas tiene una bicicleta?', r:'2' },
+  { tipo:'calculo', edad:'menor', q:'¿Cuánto es 5 + 5?', r:'10' },
+  { tipo:'calculo', edad:'menor', q:'¿Cuántas alas tiene un pájaro?', r:'2' },
+  { tipo:'calculo', edad:'junior', q:'¿Cuánto es 15 × 3?', r:'45' },
+  { tipo:'calculo', edad:'junior', q:'¿Cuánto es 64 ÷ 8?', r:'8' },
+  { tipo:'calculo', edad:'junior', q:'¿Cuánto es 11 × 11?', r:'121' },
+  { tipo:'calculo', edad:'junior', q:'¿Cuánto es 100 − 37?', r:'63' },
+  { tipo:'calculo', edad:'junior', q:'¿Cuánto es 9 × 7?', r:'63' },
+  { tipo:'calculo', edad:'teen', q:'¿Cuánto es 17 × 17?', r:'289' },
+  { tipo:'calculo', edad:'teen', q:'¿Cuánto es 3³?', r:'27' },
+  { tipo:'calculo', edad:'teen', q:'¿Cuánto es √169?', r:'13' },
+  { tipo:'calculo', edad:'teen', q:'¿Cuánto es 150% de 80?', r:'120' },
+  { tipo:'calculo', edad:'teen', q:'Si N/4 = 12, ¿cuánto es N?', r:'48' },
+  { tipo:'calculo', edad:'adulto', q:'¿Cuánto es 23 × 17?', r:'391' },
+  { tipo:'calculo', edad:'adulto', q:'¿Cuánto es 5⁴?', r:'625' },
+  { tipo:'calculo', edad:'adulto', q:'¿Cuánto es log₁₀(1000)?', r:'3' },
+  { tipo:'calculo', edad:'adulto', q:'¿Cuánto es 18% de 250?', r:'45' },
+  { tipo:'calculo', edad:'adulto', q:'¿Cuántos segundos tiene 1 hora?', r:'3600', alt:['3.600','tres mil seiscientos'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — ACERTIJOS
+  // ═══════════════════════════════════════════════════════
+  { tipo:'acertijo', edad:'menor', q:'Tengo agujas pero no coso, tengo números pero no soy una calculadora. ¿Qué soy?', r:'reloj', alt:['un reloj'] },
+  { tipo:'acertijo', edad:'menor', q:'Soy colorido, vivo en el cielo después de la lluvia y tengo 7 colores. ¿Qué soy?', r:'arcoiris', alt:['arcoíris','un arcoíris'] },
+  { tipo:'acertijo', edad:'menor', q:'Me usas para escribir, tengo punta y borro si me giras. ¿Qué soy?', r:'lapiz', alt:['lápiz','un lápiz'] },
+  { tipo:'acertijo', edad:'junior', q:'Cuanto más me secas, más mojada me pongo. ¿Qué soy?', r:'toalla', alt:['una toalla'] },
+  { tipo:'acertijo', edad:'junior', q:'Tengo ciudades pero no casas, ríos sin agua y montañas sin árboles. ¿Qué soy?', r:'mapa', alt:['un mapa'] },
+  { tipo:'acertijo', edad:'junior', q:'Soy el hijo de mi padre, pero mi padre no tiene hijos varones. ¿Quién soy?', r:'una hija', alt:['hija','la hija'] },
+  { tipo:'acertijo', edad:'teen', q:'Un hombre vive en el piso 10, baja en ascensor cada mañana pero sube a pie excepto cuando llueve. ¿Por qué?', r:'es muy bajo', alt:['es bajo','no alcanza los botones altos','por su altura'] },
+  { tipo:'acertijo', edad:'teen', q:'Soy la hermana de mi madre pero no soy tu tía. ¿Qué soy?', r:'madre', alt:['tu madre','mamá'] },
+  { tipo:'acertijo', edad:'adulto', q:'Un médico y su hijo tienen un accidente. El médico muere. El hijo llega al quirófano y el cirujano dice: "no puedo operar, es mi hijo". ¿Quién es el cirujano?', r:'la madre', alt:['su madre','mamá del niño','la mamá'] },
+  { tipo:'acertijo', edad:'adulto', q:'Si 5 máquinas tardan 5 minutos en hacer 5 objetos, ¿cuánto tardan 100 máquinas en hacer 100 objetos?', r:'5 minutos', alt:['5','cinco minutos','cinco'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — COMPLETAR LA FRASE
+  // ═══════════════════════════════════════════════════════
+  { tipo:'completar', edad:'menor', q:'Caperucita ___', r:'roja', alt:['Roja'] },
+  { tipo:'completar', edad:'menor', q:'Blancanieves y los siete ___', r:'enanitos', alt:['enanos','siete enanitos'] },
+  { tipo:'completar', edad:'menor', q:'El pato ___', r:'donald', alt:['Donald'] },
+  { tipo:'completar', edad:'junior', q:'Los Juegos del ___', r:'hambre', alt:['Hambre'] },
+  { tipo:'completar', edad:'junior', q:'Batman y ___', r:'robin', alt:['Robin'] },
+  { tipo:'completar', edad:'junior', q:'Malas noticias para el ___', r:'reino', alt:['Reino'] },
+  { tipo:'completar', edad:'teen', q:'Vivir sin ti no es vivir, es solo ___', r:'existir', alt:['sobrevivir'] },
+  { tipo:'completar', edad:'teen', q:'El que no llora, no ___', r:'mama', alt:['mama','mamá'] },
+  { tipo:'completar', edad:'adulto', q:'Al mal tiempo, buena ___', r:'cara', alt:['Cara'] },
+  { tipo:'completar', edad:'adulto', q:'El que con lobos anda, a aullar se ___', r:'enseña', alt:['enseña','aprende'] },
+  { tipo:'completar', edad:'adulto', q:'En boca cerrada no entran ___', r:'moscas', alt:['Moscas'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — LÓGICA (opción múltiple)
+  // ═══════════════════════════════════════════════════════
+  { tipo:'logica', edad:'menor', q:'Si el lunes es el primer día de la semana, ¿cuál es el tercero?', opciones:['Miércoles','Martes','Jueves','Viernes'] },
+  { tipo:'logica', edad:'menor', q:'¿Cuál no es un color primario?', opciones:['Verde','Rojo','Azul','Amarillo'] },
+  { tipo:'logica', edad:'junior', q:'Si todas las rosas son flores y algunas flores se marchitan, ¿cuál es verdad?', opciones:['Algunas rosas pueden marchitarse','Todas las rosas se marchitan','Ninguna rosa se marchita','Las rosas no son flores'] },
+  { tipo:'logica', edad:'junior', q:'¿Qué número sigue en la serie? 2, 4, 8, 16, ___', opciones:['32','24','20','28'] },
+  { tipo:'logica', edad:'teen', q:'¿Cuál número NO pertenece a la serie: 3, 7, 11, 15, 18, 23?', opciones:['18','15','11','7'] },
+  { tipo:'logica', edad:'teen', q:'Ana tiene más dinero que Beto. Carlos tiene menos que Ana. Beto tiene más que Carlos. ¿Quién tiene más?', opciones:['Ana','Beto','Carlos','Todos igual'] },
+  { tipo:'logica', edad:'adulto', q:'Si A > B y B > C, entonces ¿cuál es la relación entre A y C?', opciones:['A > C','A < C','A = C','No se puede saber'] },
+  { tipo:'logica', edad:'adulto', q:'Un tren sale a 60 km/h. Después de 90 minutos, ¿cuántos km recorrió?', opciones:['90 km','75 km','100 km','120 km'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — LENGUAJE
+  // ═══════════════════════════════════════════════════════
+  { tipo:'lenguaje', edad:'menor', q:'¿Cuál de estas palabras rima con "sol"?', opciones:['Flor','Col','Pan','Mes'] },
+  { tipo:'lenguaje', edad:'menor', q:'¿Qué palabra es un animal?', opciones:['Tigre','Mesa','Silla','Libro'] },
+  { tipo:'lenguaje', edad:'junior', q:'¿Cuál es el sinónimo de "veloz"?', opciones:['Rápido','Lento','Fuerte','Tranquilo'] },
+  { tipo:'lenguaje', edad:'junior', q:'¿Cuál es el antónimo de "dulce"?', opciones:['Amargo','Salado','Picante','Ácido'] },
+  { tipo:'lenguaje', edad:'teen', q:'¿Cuál es la figura retórica en "sus ojos son dos luceros"?', opciones:['Metáfora','Símil','Hipérbole','Personificación'] },
+  { tipo:'lenguaje', edad:'teen', q:'¿Cuál de estas palabras tiene tilde?', opciones:['Café','Tarde','Libro','Peso'] },
+  { tipo:'lenguaje', edad:'adulto', q:'¿Cuál es el gentilicio de los nacidos en Panamá?', opciones:['Panameño','Panamense','Panamero','Panamícola'] },
+  { tipo:'lenguaje', edad:'adulto', q:'¿Qué tipo de oración es "¡Cierra la puerta!"?', opciones:['Imperativa','Interrogativa','Exclamativa','Declarativa'] },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — SIMILARES
+  // ═══════════════════════════════════════════════════════
+  { tipo:'similares', edad:'menor', q:'¡Nombra 3 frutas rojas!', r:['fresa','fresas','manzana','manzanas','cereza','cerezas','frambuesa','sandía','sandia','pitahaya'], min:3 },
+  { tipo:'similares', edad:'menor', q:'¡Nombra 3 medios de transporte!', r:['bus','autobús','carro','auto','moto','tren','avión','avion','barco','bicicleta','taxi'], min:3 },
+  { tipo:'similares', edad:'junior', q:'¡Nombra 4 capitales de América Central!', r:['ciudad de panama','panama','tegucigalda','tegucigalpa','san jose','san josé','managua','san salvador','guatemala','belmopan'], min:4 },
+  { tipo:'similares', edad:'junior', q:'¡Nombra 4 instrumentos de viento!', r:['flauta','clarinete','saxofón','saxofon','trompeta','trombón','trombon','oboe','tuba','fagot','corno'], min:4 },
+  { tipo:'similares', edad:'teen', q:'¡Nombra 5 países de Asia!', r:['china','japón','japon','india','corea','rusia','tailandia','vietnam','indonesia','iran','arabia','pakistan','bangladesh','filipinas'], min:5 },
+  { tipo:'similares', edad:'teen', q:'¡Nombra 4 premios Nobel que existan!', r:['paz','medicina','fisica','fisíca','quimica','química','literatura','economía','economia'], min:4 },
+  { tipo:'similares', edad:'adulto', q:'¡Nombra 5 elementos de la tabla periódica!', r:['hidrogeno','oxigeno','carbono','nitrogeno','helio','sodio','hierro','oro','plata','calcio','potasio','cobre','zinc','fosforo','azufre','cloro'], min:5 },
+  { tipo:'similares', edad:'adulto', q:'¡Nombra 5 presidentes de Panamá!', r:['cortizo','laurentino','varela','juan carlos','martinelli','mireya','moscoso','ernesto pérez','balladares','torrijos','martin torrijos','endara','delvalle','ardito barletta','barletta'], min:5 },
+
+  // ═══════════════════════════════════════════════════════
+  //  AMPLIACIÓN — MEMORIA
+  // ═══════════════════════════════════════════════════════
+  { tipo:'memoria', edad:'menor', secuencia:['🐱','🐶','🐸','🦁'], q:'¿Cuántos animales viste?', r:'4', alt:['cuatro'] },
+  { tipo:'memoria', edad:'menor', secuencia:['🔴','🔵','🟡','🟢'], q:'¿Cuál fue el ÚLTIMO color?', r:'verde', alt:['el verde','🟢'] },
+  { tipo:'memoria', edad:'junior', secuencia:['Panamá','México','Cuba','Colombia','Argentina'], q:'¿Cuál fue el TERCER país?', r:'cuba', alt:['Cuba'] },
+  { tipo:'memoria', edad:'junior', secuencia:['13','27','8','45','3'], q:'¿Cuál fue el SEGUNDO número?', r:'27', alt:['veintisiete'] },
+  { tipo:'memoria', edad:'teen', secuencia:['Mercurio','Venus','Tierra','Marte','Júpiter'], q:'¿Cuál fue el CUARTO planeta?', r:'marte', alt:['Marte'] },
+  { tipo:'memoria', edad:'teen', secuencia:['Azul','Rojo','Verde','Negro','Blanco','Amarillo'], q:'¿Cuántos colores viste en total?', r:'6', alt:['seis'] },
+  { tipo:'memoria', edad:'adulto', secuencia:['Sócrates','Platón','Aristóteles','Descartes','Kant'], q:'¿Cuál fue el SEGUNDO filósofo?', r:'platon', alt:['Platón','platón'] },
+  { tipo:'memoria', edad:'adulto', secuencia:['Pi','Sigma','Delta','Omega','Alpha','Gamma'], q:'¿Cuál fue la CUARTA letra griega?', r:'omega', alt:['Omega'] },
 ];
 
 export const AGILIDAD_CONFIG = {

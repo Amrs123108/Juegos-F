@@ -94,6 +94,46 @@ export const ORDENA = [
   { word: 'Terremoto', cat: 'Naturaleza' }, { word: 'Economista', cat: 'Profesiones' },
   { word: 'Cirugía', cat: 'Salud' }, { word: 'Democracia', cat: 'Política' },
   { word: 'Arquitecto', cat: 'Profesiones' },
+
+  // ── Ampliación ─────────────────────────────────────────
+  // Animales extra
+  { word: 'Pingüino', cat: 'Animales' }, { word: 'Camaleón', cat: 'Animales' },
+  { word: 'Hipopótamo', cat: 'Animales' }, { word: 'Murciélago', cat: 'Animales' },
+  { word: 'Canguro', cat: 'Animales' }, { word: 'Flamenco', cat: 'Animales' },
+  { word: 'Colibrí', cat: 'Animales' }, { word: 'Guepardo', cat: 'Animales' },
+  // Frutas panameñas / tropicales
+  { word: 'Guayaba', cat: 'Frutas' }, { word: 'Marañón', cat: 'Frutas' },
+  { word: 'Maracuyá', cat: 'Frutas' }, { word: 'Níspero', cat: 'Frutas' },
+  { word: 'Carambola', cat: 'Frutas' }, { word: 'Tamarindo', cat: 'Frutas' },
+  { word: 'Caimito', cat: 'Frutas' }, { word: 'Nance', cat: 'Frutas' },
+  // Comida panameña
+  { word: 'Sancocho', cat: 'Comida' }, { word: 'Hojaldra', cat: 'Comida' },
+  { word: 'Patacón', cat: 'Comida' }, { word: 'Chicheme', cat: 'Comida' },
+  { word: 'Carimanola', cat: 'Comida' }, { word: 'Tortilla', cat: 'Comida' },
+  // Países
+  { word: 'Colombia', cat: 'Países' }, { word: 'Venezuela', cat: 'Países' },
+  { word: 'Honduras', cat: 'Países' }, { word: 'Guatemala', cat: 'Países' },
+  { word: 'Nicaragua', cat: 'Países' }, { word: 'El Salvador', cat: 'Países' },
+  { word: 'Jamaica', cat: 'Países' }, { word: 'Ecuador', cat: 'Países' },
+  // Objetos y tecnología
+  { word: 'Teclado', cat: 'Tecnología' }, { word: 'Audífono', cat: 'Tecnología' },
+  { word: 'Impresora', cat: 'Tecnología' }, { word: 'Proyector', cat: 'Tecnología' },
+  { word: 'Calculadora', cat: 'Tecnología' }, { word: 'Altavoz', cat: 'Tecnología' },
+  // Ciencias / naturaleza
+  { word: 'Átomo', cat: 'Ciencia' }, { word: 'Molécula', cat: 'Ciencia' },
+  { word: 'Gravedad', cat: 'Ciencia' }, { word: 'Fotosíntesis', cat: 'Ciencia' },
+  { word: 'Evolución', cat: 'Ciencia' }, { word: 'Metabolismo', cat: 'Ciencia' },
+  // Profesiones
+  { word: 'Programador', cat: 'Profesiones' }, { word: 'Contador', cat: 'Profesiones' },
+  { word: 'Enfermero', cat: 'Profesiones' }, { word: 'Ingeniero', cat: 'Profesiones' },
+  { word: 'Veterinario', cat: 'Profesiones' }, { word: 'Cocinero', cat: 'Profesiones' },
+  // Hogar / vida diaria
+  { word: 'Refrigerador', cat: 'Hogar' }, { word: 'Lavadora', cat: 'Hogar' },
+  { word: 'Ventilador', cat: 'Hogar' }, { word: 'Interruptor', cat: 'Hogar' },
+  // Historia / Panamá
+  { word: 'Torrijos', cat: 'Historia' }, { word: 'Independencia', cat: 'Historia' },
+  { word: 'Miraflores', cat: 'Historia' }, { word: 'Balboa', cat: 'Historia' },
+  { word: 'Canalero', cat: 'Historia' }, { word: 'Separación', cat: 'Historia' },
 ];
 
 export const ORDENA_CONFIG = {
