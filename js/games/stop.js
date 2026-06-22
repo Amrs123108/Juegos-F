@@ -65,7 +65,9 @@ export const stopGame = {
     function categoryFor(band) {
       const list = CATEGORIES.filter(c => c.ages.includes(band) && c.words && c.words.length);
       const pool = list.length ? list : CATEGORIES.filter(c => c.words && c.words.length);
-      return drawNext('stop:cat:' + band, pool, c => c.name);
+      // Clave global 'stop:cat': una categoría que incluye varias edades
+      // no se repetirá entre jugadores de distinto band en la misma noche.
+      return drawNext('stop:cat', pool, c => c.name);
     }
 
     function startTurn() {

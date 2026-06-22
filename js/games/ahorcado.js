@@ -31,7 +31,9 @@ export const ahorcadoGame = {
     const dif = DIFICULTAD[cfg.dificultad] || DIFICULTAD.media;
     const maxErrors = dif.maxErrors;
     const pool = AHORCADO.filter(a => dif.levels.includes(a.level));
-    let deck = drawMany('ahorcado:' + cfg.dificultad, pool.length ? pool : AHORCADO, dif.rounds, a => a.answer);
+    // Clave global 'ahorcado': evita que una palabra de nivel 'media'
+    // se repita si el mismo grupo juega en modo Fácil y luego Difícil.
+    let deck = drawMany('ahorcado', pool.length ? pool : AHORCADO, dif.rounds, a => a.answer);
     let roundIdx = 0;
     let solved = 0;
     let teamPointsTotal = 0;
