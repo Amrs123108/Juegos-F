@@ -123,14 +123,14 @@ export function drawNext(key, pool, idFn) {
   /* 1. Candidatos: no vistos en esta noche (session) */
   let avail = pool.filter(it => !session[key].has(String(id(it))));
 
-  /* 2. Pool agotado en sesión → reset SELECTIVO de este sub-pool
-        Solo borra los items de ESTE pool; los de otros pools que
-        compartan la misma clave quedan intactos. */
+  /* 2. Pool agotado en sesión:
+        NUNCA limpiamos session — hacerlo destruiría la garantía cruzada entre
+        jugadores: un reset del pool de niña dejaría al descubierto palabras que
+        adulto ya vio con su pool más grande, causando repeticiones visibles.
+        Solo reseteamos mem (preferencia entre noches) y aceptamos usar el pool
+        completo aunque algún ítem ya se haya visto esta noche. */
   if (!avail.length) {
-    pool.forEach(it => {
-      session[key].delete(String(id(it)));
-      mem[key].delete(String(id(it)));
-    });
+    pool.forEach(it => mem[key].delete(String(id(it))));
     avail = pool.slice();
   }
 
@@ -163,12 +163,11 @@ export function drawMany(key, pool, n, idFn) {
   /* 1. Candidatos: no vistos en sesión */
   let avail = pool.filter(it => !session[key].has(String(id(it))));
 
-  /* 2. Si no hay suficientes, reset selectivo */
+  /* 2. Si no hay suficientes frescos en sesión:
+        Igual que drawNext — solo reseteamos mem, NUNCA session,
+        para no desmarcar ítems que otros jugadores ya vieron. */
   if (avail.length < need) {
-    pool.forEach(it => {
-      session[key].delete(String(id(it)));
-      mem[key].delete(String(id(it)));
-    });
+    pool.forEach(it => mem[key].delete(String(id(it))));
     avail = pool.slice();
   }
 

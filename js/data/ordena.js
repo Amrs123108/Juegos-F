@@ -134,6 +134,50 @@ export const ORDENA = [
   { word: 'Torrijos', cat: 'Historia' }, { word: 'Independencia', cat: 'Historia' },
   { word: 'Miraflores', cat: 'Historia' }, { word: 'Balboa', cat: 'Historia' },
   { word: 'Canalero', cat: 'Historia' }, { word: 'Separación', cat: 'Historia' },
+
+  // ── AMPLIACIÓN 2 ──────────────────────────────────────────
+  // Cortas (3-4 letras) — niña
+  { word: 'Sol', cat: 'Naturaleza' }, { word: 'Mar', cat: 'Naturaleza' },
+  { word: 'Luz', cat: 'Naturaleza' }, { word: 'Pie', cat: 'Cuerpo' },
+  { word: 'Ojo', cat: 'Cuerpo' }, { word: 'Pan', cat: 'Comida' },
+  { word: 'Rey', cat: 'Personas' }, { word: 'Boa', cat: 'Animales' },
+  { word: 'Col', cat: 'Verduras' }, { word: 'Tío', cat: 'Familia' },
+  { word: 'Dedo', cat: 'Cuerpo' }, { word: 'Lago', cat: 'Naturaleza' },
+  { word: 'Nube', cat: 'Naturaleza' }, { word: 'Rosa', cat: 'Flores' },
+  { word: 'Sapo', cat: 'Animales' }, { word: 'Mapa', cat: 'Escuela' },
+  { word: 'Bola', cat: 'Juguetes' }, { word: 'Copa', cat: 'Hogar' },
+  { word: 'Vaca', cat: 'Animales' }, { word: 'Lobo', cat: 'Animales' },
+  // Medias (5-7 letras) — ado
+  { word: 'Árbol', cat: 'Naturaleza' }, { word: 'Playa', cat: 'Lugares' },
+  { word: 'Tigre', cat: 'Animales' }, { word: 'Puente', cat: 'Ciudad' },
+  { word: 'Lluvia', cat: 'Naturaleza' }, { word: 'Cohete', cat: 'Ciencia' },
+  { word: 'Brújula', cat: 'Objetos' }, { word: 'Eclipse', cat: 'Ciencia' },
+  { word: 'Volcán', cat: 'Naturaleza' }, { word: 'Palmera', cat: 'Plantas' },
+  { word: 'Mariposa', cat: 'Animales' }, { word: 'Estrella', cat: 'Naturaleza' },
+  { word: 'Montaña', cat: 'Naturaleza' }, { word: 'Cabaña', cat: 'Lugares' },
+  { word: 'Maleta', cat: 'Viajes' }, { word: 'Verano', cat: 'Estaciones' },
+  { word: 'Barco', cat: 'Transporte' }, { word: 'Piscina', cat: 'Lugares' },
+  { word: 'Cometa', cat: 'Ciencia' }, { word: 'Fiesta', cat: 'Eventos' },
+  { word: 'Ciudad', cat: 'Lugares' }, { word: 'Helado', cat: 'Comida' },
+  { word: 'Escuela', cat: 'Educación' }, { word: 'Camisa', cat: 'Ropa' },
+  { word: 'Antena', cat: 'Tecnología' }, { word: 'Pistola', cat: 'Objetos' },
+  { word: 'Oficina', cat: 'Trabajo' }, { word: 'Tarjeta', cat: 'Objetos' },
+  // Largas (8-10 letras) — adulto
+  { word: 'Gasolina', cat: 'Tecnología' }, { word: 'Mandarina', cat: 'Frutas' },
+  { word: 'Carretera', cat: 'Ciudad' }, { word: 'Teléfono', cat: 'Tecnología' },
+  { word: 'Discurso', cat: 'Política' }, { word: 'Elecciones', cat: 'Política' },
+  { word: 'Terremoto', cat: 'Naturaleza' }, { word: 'Acuarela', cat: 'Arte' },
+  { word: 'Paracaídas', cat: 'Deportes' }, { word: 'Maquillaje', cat: 'Belleza' },
+  { word: 'Hipopótamo', cat: 'Animales' }, { word: 'Sinfonía', cat: 'Música' },
+  { word: 'Democracia', cat: 'Política' }, { word: 'Contrato', cat: 'Derecho' },
+  { word: 'Microscopio', cat: 'Ciencia' }, { word: 'Expedición', cat: 'Viajes' },
+  { word: 'Biblioteca', cat: 'Educación' }, { word: 'Motocicleta', cat: 'Transporte' },
+  { word: 'Estatuilla', cat: 'Arte' }, { word: 'Maquinaria', cat: 'Tecnología' },
+  // Panamá
+  { word: 'Ceviche', cat: 'Comida Panamá' }, { word: 'Pollera', cat: 'Cultura' },
+  { word: 'Mejorana', cat: 'Música' }, { word: 'Culeco', cat: 'Cultura' },
+  { word: 'Taboga', cat: 'Lugares' }, { word: 'Chiriquí', cat: 'Provincias' },
+  { word: 'Veraguas', cat: 'Provincias' }, { word: 'Coclesano', cat: 'Cultura' },
 ];
 
 export const ORDENA_CONFIG = {
